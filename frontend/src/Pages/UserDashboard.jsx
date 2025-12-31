@@ -12,7 +12,6 @@ const UserDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Navbar */}
       <nav className="px-6 py-4 flex justify-between items-center bg-white/60 backdrop-blur-md shadow-sm rounded-b-3xl">
         <h1 className="text-lg font-semibold text-purple-700">
           User Dashboard
@@ -40,10 +39,12 @@ const UserDashboard = () => {
 
       <DashboardDesign />
 
-      {/* Footer */}
       <footer className="py-10 text-center text-gray-500 text-sm border-t border-gray-200">
         &copy; 2025 EventSync
       </footer>
+      <h2>
+        <button onClick={handleLogout}>Logout</button>
+      </h2>
     </div>
   );
 };

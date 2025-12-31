@@ -1,4 +1,5 @@
 import { clearAuthCookies } from "../Utils/auth";
+import SuperAdminDashboard from "../Components/SuperAdminDashboard";
 
 const AdminDashboard = () => {
   const handleLogout = () => {
@@ -9,8 +10,8 @@ const AdminDashboard = () => {
   return (
     <div>
       <h1>Admin Dashboard</h1>
-      <p>Welcome, admin!</p>
-      <button onClick={handleLogout}>Logout</button>
+
+      <SuperAdminDashboard />
     </div>
   );
 };

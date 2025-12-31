@@ -23,7 +23,7 @@ const Hero = () => {
 
       <div className="relative z-0 flex flex-col items-center justify-center h-full text-center text-white px-4">
         <h1 className="text-6xl font-bold">
-          <span className="text-[#000000]">App name</span>
+          <span className="text-[#000000]">Event Sync</span>
         </h1>
 
         <p className="text-[#ffffff] text-xl mt-4 font-semibold">

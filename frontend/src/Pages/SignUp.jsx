@@ -125,6 +125,7 @@ const SignUp = () => {
           </p>
         </form>
       </div>
+      
     </GoogleOAuthProvider>
   );
 };

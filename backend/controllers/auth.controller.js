@@ -8,7 +8,7 @@ const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Only superadmin can assign admin or superadmin roles
+    // Only superadmin can assign admin or superadmin roles to other users
     if (role && role !== "normal") {
       if (!req.user || req.user.role !== "superadmin") {
         return res.status(403).json({ message: "Forbidden" });
