@@ -11,15 +11,9 @@ export default function SuperAdminDashboard() {
   const createClub = async (e) => {
     e.preventDefault();
     const token = getTokenFromCookies();
-    if (!token) {
-      alert("No token found. Please log in again.");
-      return;
-    }
+    if (!token) return;
 
-    if (!clubName.trim()) {
-      alert("Club name cannot be empty.");
-      return;
-    }
+    if (!clubName.trim()) return;
 
     try {
       const res = await fetch(`${API_URL}/clubs`, {
@@ -34,9 +28,9 @@ export default function SuperAdminDashboard() {
       const data = await res.json();
 
       if (res.ok) {
-        alert(`Created club: ${data.name} (ID: ${data._id})`);
         setClubId(data._id);
-        setClubName(""); // clear input
+        setClubName("");
+        alert(`Created club: ${data.name} (ID: ${data._id})`);
       } else {
         alert(`Error: ${data.message || "Failed to create club"}`);
       }
@@ -49,15 +43,9 @@ export default function SuperAdminDashboard() {
   const assignAdmin = async (e) => {
     e.preventDefault();
     const token = getTokenFromCookies();
-    if (!token) {
-      alert("No token found. Please log in again.");
-      return;
-    }
+    if (!token) return;
 
-    if (!clubId.trim() || !userId.trim()) {
-      alert("Club ID and User ID cannot be empty.");
-      return;
-    }
+    if (!clubId.trim() || !userId.trim()) return;
 
     try {
       const res = await fetch(`${API_URL}/clubs/${clubId}/admins`, {
@@ -72,8 +60,8 @@ export default function SuperAdminDashboard() {
       const data = await res.json();
 
       if (res.ok) {
+        setUserId("");
         alert(`Assigned user ${userId} as admin to club ${clubId}`);
-        setUserId(""); // clear input
       } else {
         alert(`Error: ${data.message || "Failed to assign admin"}`);
       }
@@ -84,36 +72,44 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="p-4">
-      <form onSubmit={createClub} className="mb-4">
+    <div className="p-8 bg-purple-950 text-white rounded-xl border border-blue-400 shadow-lg flex flex-col gap-8">
+      <form onSubmit={createClub} className="flex flex-col sm:flex-row gap-4">
         <input
           type="text"
           placeholder="Club Name"
           value={clubName}
           onChange={(e) => setClubName(e.target.value)}
-          className="border p-2 mr-2"
+          className="flex-1 p-3 bg-purple-900 border border-blue-400 rounded-md outline-none focus:border-blue-300 transition"
         />
-        <button type="submit" className="bg-green-600 text-white p-2 rounded">
+        <button
+          type="submit"
+          className="px-6 py-3 bg-blue-400 text-purple-950 font-pixel uppercase rounded-md hover:bg-blue-300 transition"
+        >
           Create Club
         </button>
       </form>
 
-      <form onSubmit={assignAdmin}>
+      <form onSubmit={assignAdmin} className="flex flex-col sm:flex-row gap-4">
         <input
           type="text"
           placeholder="Club ID"
           value={clubId}
           onChange={(e) => setClubId(e.target.value)}
-          className="border p-2 mr-2"
+          className="flex-1 p-3 bg-purple-900 border border-blue-400 rounded-md outline-none focus:border-blue-300 transition"
         />
         <input
           type="text"
           placeholder="User ID"
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
-          className="border p-2 mr-2"
+          className="flex-1 p-3 bg-purple-900 border border-blue-400 rounded-md outline-none focus:border-blue-300 transition"
         />
-        <button type="submit">Assign Admin</button>
+        <button
+          type="submit"
+          className="px-6 py-3 border border-blue-400 text-white font-pixel uppercase rounded-md hover:bg-blue-400 hover:text-purple-950 transition"
+        >
+          Assign Admin
+        </button>
       </form>
     </div>
   );

@@ -5,16 +5,23 @@ const EventSchema = new Schema(
     title: { type: String, required: true },
     description: { type: String },
     date: { type: Date, required: true },
-
-    clubId: {
-      type: Schema.Types.ObjectId,
-      ref: "Club",
-      required: false,
-    },
-
+    location: { type: String },
+    imageUrl: { type: String },
     visibility: {
       type: String,
       enum: ["club", "school"],
+      required: true,
+    },
+    clubId: {
+      type: Schema.Types.ObjectId,
+      ref: "Club",
+      required: function () {
+        return this.visibility === "club";
+      },
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
   },

@@ -1,26 +1,21 @@
 const express = require("express");
+const router = express.Router();
 const { verifyToken } = require("../middlewares/auth.middleware");
 const eventController = require("../controllers/event.controller");
-const Event = require("../models/event.model");
 
-const router = express.Router();
 router.post("/", verifyToken, eventController.createEvent);
-router.post("/", verifyToken, async (req, res) => {
-  const { title, description, date, visibility, clubId } = req.body;
+router.get("/school-events", eventController.getEvents);
+router.get("/club/:clubId", eventController.getEventsByClub);
 
-  if (visibility === "club" && !clubId) {
-    return res.status(400).json({ message: "clubId required for club events" });
-  }
-
-  const event = await Event.create({
-    title,
-    description,
-    date,
-    visibility,
-    clubId: visibility === "club" ? clubId : null,
-  });
-
-  res.status(201).json(event);
-});
+router.post(
+  "/:eventId/register",
+  verifyToken,
+  eventController.registerForEvent
+);
+router.get(
+  "/registrations",
+  verifyToken,
+  eventController.getStudentRegistrations
+);
 
 module.exports = router;
