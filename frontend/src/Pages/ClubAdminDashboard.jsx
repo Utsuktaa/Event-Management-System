@@ -4,7 +4,7 @@ import axios from "axios";
 import { CalendarPlus, X, Clock, MapPin } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 
-/* ---------- Toast ---------- */
+//Toast
 function Toast({ message, type, onClose }) {
   return (
     <div
@@ -20,7 +20,7 @@ function Toast({ message, type, onClose }) {
   );
 }
 
-/* ---------- Main Component ---------- */
+
 export default function ClubAdminCreateEvent() {
   const { clubId } = useParams();
 
@@ -43,7 +43,7 @@ export default function ClubAdminCreateEvent() {
     setTimeout(() => setToast(null), duration);
   };
 
-  /* ---------- Fetch Events ---------- */
+
   const fetchEvents = async () => {
     try {
       const res = await axios.get(
@@ -124,7 +124,7 @@ export default function ClubAdminCreateEvent() {
     }
   };
 
-  /* ---------- Edit ---------- */
+
   const handleEdit = (event) => {
     setEditingEventId(event._id);
     setTitle(event.title);
@@ -135,7 +135,6 @@ export default function ClubAdminCreateEvent() {
     setImageFile(null);
   };
 
-  /* ---------- Reset ---------- */
   const resetForm = () => {
     setEditingEventId(null);
     setTitle("");
@@ -146,7 +145,7 @@ export default function ClubAdminCreateEvent() {
     setImageFile(null);
   };
 
-  /* ---------- UI ---------- */
+
   return (
     <div className="min-h-screen bg-purple-950 text-white flex flex-col sm:flex-row gap-8 px-6 py-16">
       {/* ---------- Form ---------- */}

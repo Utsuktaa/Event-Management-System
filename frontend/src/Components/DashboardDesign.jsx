@@ -55,7 +55,7 @@ export default function DashboardDesign() {
 
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/events/:eventId/register",
+        `http://localhost:5000/api/events/${eventId}/register`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setRegisteredEvents(res.data.map((r) => r.eventId));

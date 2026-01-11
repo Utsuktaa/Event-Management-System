@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
+import ClubInfo from "../Components/ClubInfo";
 
 export default function JoinClubs() {
   const navigate = useNavigate();
   const [clubs, setClubs] = useState([]);
+  const [selectedClub, setSelectedClub] = useState(null);
+
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     const token = document.cookie
@@ -25,8 +33,15 @@ export default function JoinClubs() {
   const handleClubClick = (club) => {
     if (club.isAdmin) {
       navigate(`/club-admin/${club._id}`);
+      return;
+    }
+
+    if (club.membershipStatus === "approved") {
+      navigate(`/clubs/${club._id}`);
+    } else if (club.membershipStatus === "pending") {
+      showToast("Your request to join is pending approval.", "error");
     } else {
-      alert(`You clicked ${club.name} (student view)`);
+      setSelectedClub(club);
     }
   };
 
@@ -50,17 +65,40 @@ export default function JoinClubs() {
               <Users className="w-6 h-6 text-blue-400" />
               <h3 className="font-pixel text-2xl">{club.name}</h3>
             </div>
-            {club.isAdmin && (
-              <span className="text-blue-400 font-pixel text-sm">
-                You are admin
-              </span>
-            )}
-            {!club.isAdmin && (
-              <span className="text-gray-300 font-pixel text-sm">Student</span>
-            )}
+            <span
+              className={`${
+                club.isAdmin
+                  ? "text-blue-400"
+                  : club.membershipStatus === "approved"
+                  ? "text-green-400"
+                  : club.membershipStatus === "pending"
+                  ? "text-yellow-400"
+                  : "text-gray-300"
+              } font-pixel text-sm`}
+            >
+              {club.isAdmin
+                ? "Admin"
+                : club.membershipStatus === "approved"
+                ? "Member"
+                : club.membershipStatus === "pending"
+                ? "Pending approval"
+                : "Not a member"}
+            </span>
           </div>
         ))}
       </div>
+
+      {selectedClub && (
+        <ClubInfo club={selectedClub} onClose={() => setSelectedClub(null)} />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

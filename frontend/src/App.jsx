@@ -6,6 +6,7 @@ import UserDashboard from "./Pages/UserDashboard";
 import AdminDashboard from "./Pages/AdminDashboard";
 import ClubAdminDashboard from "./Pages/ClubAdminDashboard.jsx";
 import JoinClubs from "./Pages/JoinClubs.jsx";
+import JoinClubPage from "./Pages/JoinClubPage.jsx";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/club-admin/:clubId" element={<ClubAdminDashboard />} />
       <Route path="/join-clubs" element={<JoinClubs />} />
+      <Route path="/clubs/:clubId/join" element={<JoinClubPage />} />
     </Routes>
   );
 }
