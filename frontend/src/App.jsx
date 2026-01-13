@@ -7,6 +7,8 @@ import AdminDashboard from "./Pages/AdminDashboard";
 import ClubAdminDashboard from "./Pages/ClubAdminDashboard.jsx";
 import JoinClubs from "./Pages/JoinClubs.jsx";
 import JoinClubPage from "./Pages/JoinClubPage.jsx";
+import ClubAdminRequests from "./Pages/ClubAdminRequests";
+import RegisteredEvents from "./Pages/RegisteredEvents.jsx"; 
 
 function App() {
   return (
@@ -19,6 +21,11 @@ function App() {
       <Route path="/club-admin/:clubId" element={<ClubAdminDashboard />} />
       <Route path="/join-clubs" element={<JoinClubs />} />
       <Route path="/clubs/:clubId/join" element={<JoinClubPage />} />
+      <Route
+        path="/club-admin/:clubId/requests"
+        element={<ClubAdminRequests />}
+      />
+      <Route path="/my-events" element={<RegisteredEvents />} />
     </Routes>
   );
 }

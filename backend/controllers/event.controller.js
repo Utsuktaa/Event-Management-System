@@ -1,6 +1,8 @@
 const Event = require("../models/event.model");
 const ClubAdmin = require("../models/clubAdmin.model");
 const EventRegistration = require("../models/eventRegistration.model");
+const User = require("../models/User.model");
+
 exports.createEvent = async (req, res) => {
   try {
     const { title, description, date, visibility, clubId, location, imageUrl } =
@@ -85,7 +87,6 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
-// Register student for an event
 exports.registerForEvent = async (req, res) => {
   const studentId = req.user.userId;
   const { eventId } = req.params;
@@ -111,5 +112,21 @@ exports.getStudentRegistrations = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch registrations" });
+  }
+};
+exports.getStudentRegistrations = async (req, res) => {
+  try {
+    const studentId = req.user.userId;
+
+    const registrations = await EventRegistration.find({ studentId }).populate(
+      "eventId"
+    );
+
+    const events = registrations.map((r) => r.eventId);
+
+    return res.status(200).json({ events });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
   }
 };

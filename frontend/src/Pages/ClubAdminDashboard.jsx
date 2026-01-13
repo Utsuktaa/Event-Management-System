@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { CalendarPlus, X, Clock, MapPin } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
+import { useNavigate } from "react-router-dom";
+
 
 //Toast
 function Toast({ message, type, onClose }) {
@@ -20,7 +22,6 @@ function Toast({ message, type, onClose }) {
   );
 }
 
-
 export default function ClubAdminCreateEvent() {
   const { clubId } = useParams();
 
@@ -30,6 +31,9 @@ export default function ClubAdminCreateEvent() {
   const [location, setLocation] = useState("");
   const [visibility, setVisibility] = useState("club");
   const [imageFile, setImageFile] = useState(null);
+  const { eventId } = useParams();
+  const navigate = useNavigate();
+
 
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
@@ -42,7 +46,6 @@ export default function ClubAdminCreateEvent() {
     setToast({ message, type });
     setTimeout(() => setToast(null), duration);
   };
-
 
   const fetchEvents = async () => {
     try {
@@ -124,7 +127,6 @@ export default function ClubAdminCreateEvent() {
     }
   };
 
-
   const handleEdit = (event) => {
     setEditingEventId(event._id);
     setTitle(event.title);
@@ -144,7 +146,6 @@ export default function ClubAdminCreateEvent() {
     setVisibility("club");
     setImageFile(null);
   };
-
 
   return (
     <div className="min-h-screen bg-purple-950 text-white flex flex-col sm:flex-row gap-8 px-6 py-16">
@@ -280,6 +281,12 @@ export default function ClubAdminCreateEvent() {
           onClose={() => setToast(null)}
         />
       )}
+      <button
+        onClick={() => navigate(`/club-admin/${clubId}/requests`)}
+        className="border border-blue-400 px-4 py-2 font-pixel"
+      >
+        View Join Requests
+      </button>
     </div>
   );
 }

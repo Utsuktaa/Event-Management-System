@@ -16,6 +16,8 @@ export default function DashboardDesign() {
   const [events, setEvents] = useState([]);
   const [expandedEvent, setExpandedEvent] = useState(null);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
+  const [showRegisteredOnly, setShowRegisteredOnly] = useState(false);
 
   const cards = [
     { icon: Calendar, title: "Attendance", desc: "View your attendance" },
@@ -23,7 +25,7 @@ export default function DashboardDesign() {
     {
       icon: FileText,
       title: "View Events",
-      desc: "View events you have participated",
+      desc: "View events you have registered",
     },
     {
       icon: BarChart2,
@@ -32,6 +34,7 @@ export default function DashboardDesign() {
     },
   ];
 
+  // Fetch all school events
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -47,7 +50,6 @@ export default function DashboardDesign() {
     };
     fetchEvents();
   }, []);
-  const [registeredEvents, setRegisteredEvents] = useState([]);
 
   const fetchRegistered = async () => {
     const token = getTokenFromCookies();
@@ -55,10 +57,11 @@ export default function DashboardDesign() {
 
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/events/${eventId}/register`,
+        "http://localhost:5000/api/events/registrations", 
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setRegisteredEvents(res.data.map((r) => r.eventId));
+
+      setRegisteredEvents(res.data.events.map((e) => e._id));
     } catch (err) {
       console.error("Failed to fetch registrations:", err);
     }
@@ -70,11 +73,17 @@ export default function DashboardDesign() {
 
   const handleCardClick = (title) => {
     if (title === "Join Clubs") navigate("/join-clubs");
+    if (title === "View Events") navigate("/my-events");
   };
 
   const toggleExpand = (eventId) => {
     setExpandedEvent(expandedEvent === eventId ? null : eventId);
   };
+
+  // Determine which events to display
+  const displayedEvents = showRegisteredOnly
+    ? events.filter((e) => registeredEvents.includes(e._id))
+    : events;
 
   return (
     <div className="min-h-screen bg-purple-950 relative overflow-hidden font-poppins text-white">
@@ -92,9 +101,15 @@ export default function DashboardDesign() {
 
           {loadingEvents ? (
             <p className="text-center font-pixel text-xl">Loading events...</p>
+          ) : displayedEvents.length === 0 ? (
+            <p className="text-center font-pixel text-xl">
+              {showRegisteredOnly
+                ? "You have not registered for any events."
+                : "No events available."}
+            </p>
           ) : (
             <div className="space-y-6">
-              {events.map((event, i) => {
+              {displayedEvents.map((event, i) => {
                 const isExpanded = expandedEvent === event._id;
                 return (
                   <div
