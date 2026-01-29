@@ -1,29 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { getTokenFromCookies } from "../Utils/auth";
+import { formatDistanceToNow } from "date-fns";
 
-//  function for time ago
-function timeAgo(date) {
-  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-  if (seconds < 60) return `${seconds} sec ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hr ago`;
-  const days = Math.floor(hours / 24);
-  return `${days} day${days > 1 ? "s" : ""} ago`;
-}
-
-export default function Discussions({ clubId }) {
-  const token = getTokenFromCookies();
-
+export default function Discussions({ clubId, token }) {
   const [posts, setPosts] = useState([]);
-  const [showCreatePost, setShowCreatePost] = useState(false);
-  const [content, setContent] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [replyTo, setReplyTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
-  const [expandedPosts, setExpandedPosts] = useState({}); // for toggling full post view
 
   const fetchPosts = async () => {
     try {
@@ -31,7 +16,7 @@ export default function Discussions({ clubId }) {
         `http://localhost:5000/api/clubs/${clubId}/posts`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      setPosts(res.data);
+      setPosts(res.data || []);
     } catch (err) {
       console.error(err);
     }
@@ -39,67 +24,70 @@ export default function Discussions({ clubId }) {
 
   useEffect(() => {
     fetchPosts();
-  }, [clubId]);
+  }, [clubId, token]);
 
-  const handlePost = async () => {
-    if (!title.trim() || !content.trim()) return;
-    await axios.post(
-      `http://localhost:5000/api/clubs/${clubId}/posts`,
-      { title, description: content },
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    setTitle("");
-    setContent("");
-    setShowCreatePost(false);
-    fetchPosts();
+  const handleCreate = async () => {
+    if (!title.trim() || !description.trim()) return;
+    try {
+      await axios.post(
+        `http://localhost:5000/api/clubs/${clubId}/posts`,
+        { title, description },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setTitle("");
+      setDescription("");
+      setCreateOpen(false);
+      fetchPosts();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleReply = async (parentId) => {
     if (!replyContent.trim()) return;
-    await axios.post(
-      `http://localhost:5000/api/clubs/${clubId}/posts`,
-      { description: replyContent, parentId },
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    setReplyTo(null);
-    setReplyContent("");
-    fetchPosts();
-  };
-
-  const toggleExpand = (postId) => {
-    setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
+    try {
+      await axios.post(
+        `http://localhost:5000/api/clubs/${clubId}/posts`,
+        { description: replyContent, parentId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setReplyContent("");
+      setReplyTo(null);
+      fetchPosts();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const topPosts = posts.filter((p) => !p.parentId);
   const replies = posts.filter((p) => p.parentId);
 
   return (
-    <div>
-      {/* Create Post*/}
+    <div className="mt-6 max-w-4xl mx-auto space-y-6">
       <button
-        onClick={() => setShowCreatePost((prev) => !prev)}
-        className="px-4 py-2 mb-4 font-pixel border border-blue-400 rounded bg-purple-900 hover:bg-blue-400 hover:text-purple-950"
+        onClick={() => setCreateOpen(!createOpen)}
+        className="px-6 py-2 border border-blue-400 font-pixel rounded-full bg-purple-900 hover:bg-blue-400 hover:text-purple-950"
       >
         Create Post
       </button>
 
-      {showCreatePost && (
-        <div className="mb-6 border border-blue-400 p-4 rounded bg-purple-900">
+      {createOpen && (
+        <div className="mt-4 p-4 border border-blue-400 rounded-lg bg-purple-950 space-y-3">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Post Title"
-            className="w-full mb-2 p-2 border border-blue-400 rounded bg-purple-950"
+            placeholder="Post title"
+            className="w-full p-2 border border-blue-400 rounded bg-purple-900"
           />
           <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write something..."
-            className="w-full p-2 border border-blue-400 rounded bg-purple-950"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Write your post..."
+            className="w-full p-2 border border-blue-400 rounded bg-purple-900"
           />
           <button
-            onClick={handlePost}
-            className="mt-2 px-4 py-2 border border-blue-400 font-pixel rounded hover:bg-blue-400 hover:text-purple-950"
+            onClick={handleCreate}
+            className="px-4 py-2 border border-blue-400 font-pixel rounded hover:bg-blue-400 hover:text-purple-950"
           >
             Post
           </button>
@@ -107,76 +95,73 @@ export default function Discussions({ clubId }) {
       )}
 
       {/* Posts */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {topPosts.map((post) => (
-          <div key={post._id} className="border border-blue-400 p-4 rounded">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-gray-400" />{" "}
-              <span className="font-semibold">{post.authorId?.name}</span>
-              <span className="text-xs text-gray-400 ml-auto">
-                {timeAgo(post.createdAt)}
-              </span>
+          <div
+            key={post._id}
+            className="border border-blue-400 rounded-lg p-4 bg-purple-950"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gray-400" />
+              <span className="font-pixel text-sm">{post.authorId?.name}</span>
             </div>
-
-            {/* Title */}
             {post.title && <h3 className="font-bold mb-1">{post.title}</h3>}
-
-            {/* Description */}
-            <p
-              className="mb-2 cursor-pointer"
-              onClick={() => toggleExpand(post._id)}
-            >
-              {expandedPosts[post._id]
-                ? post.description
-                : post.description.slice(0, 100) +
-                  (post.description.length > 100 ? "..." : "")}
+            <p className="mb-2">
+              {post.description.length > 150 && !post.expanded
+                ? post.description.slice(0, 150) + "..."
+                : post.description}
             </p>
+            <span className="text-xs text-gray-400">
+              {formatDistanceToNow(new Date(post.createdAt), {
+                addSuffix: true,
+              })}
+            </span>
 
-            {/* Reply Button */}
+            {/* Reply  */}
             <button
               onClick={() => setReplyTo(replyTo === post._id ? null : post._id)}
-              className="text-blue-400 text-sm mb-2"
+              className="mt-2 text-blue-400 text-sm"
             >
               Reply
             </button>
 
-            {/* Reply Box */}
+            {/* Reply box */}
             {replyTo === post._id && (
-              <div className="ml-4 mt-2">
+              <div className="mt-2 ml-6 space-y-2">
                 <textarea
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
+                  className="w-full p-2 border border-blue-400 rounded bg-purple-900"
                   placeholder="Write a reply..."
-                  className="w-full p-2 border border-blue-400 rounded bg-purple-950"
                 />
                 <button
                   onClick={() => handleReply(post._id)}
-                  className="mt-1 px-3 py-1 border border-blue-400 font-pixel rounded hover:bg-blue-400 hover:text-purple-950"
+                  className="px-3 py-1 border border-blue-400 font-pixel rounded hover:bg-blue-400 hover:text-purple-950"
                 >
                   Reply
                 </button>
-              </div>
-            )}
 
-            <div className="ml-4 mt-2 space-y-2">
-              {replies
-                .filter((r) => r.parentId === post._id)
-                .map((reply) => (
-                  <div
-                    key={reply._id}
-                    className="border-l-2 border-blue-400 pl-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-gray-400" />
-                      <span className="text-sm">{reply.authorId?.name}</span>
-                      <span className="text-xs text-gray-400 ml-auto">
-                        {timeAgo(reply.createdAt)}
+                {replies
+                  .filter((r) => r.parentId === post._id)
+                  .map((reply) => (
+                    <div
+                      key={reply._id}
+                      className="ml-4 mt-2 border-l-2 border-blue-400 pl-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-gray-400" />
+                        <span className="text-sm">{reply.authorId?.name}</span>
+                      </div>
+                      <p className="text-sm mt-1">{reply.description}</p>
+                      <span className="text-xs text-gray-400">
+                        {formatDistanceToNow(new Date(reply.createdAt), {
+                          addSuffix: true,
+                        })}
                       </span>
                     </div>
-                    <p>{reply.description}</p>
-                  </div>
-                ))}
-            </div>
+                  ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

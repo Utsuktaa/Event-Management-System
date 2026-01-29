@@ -7,8 +7,14 @@ const ClubSchema = new Schema(
       required: true,
       unique: true,
     },
+    documents: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Document",
+      },
+    ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = model("Club", ClubSchema);

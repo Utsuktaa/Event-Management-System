@@ -14,62 +14,69 @@ export default function ClubMemberDashboard() {
   const [clubName, setClubName] = useState("");
   const [activeTab, setActiveTab] = useState("Discussions"); // default tab
 
+  // Fetch club name
   useEffect(() => {
-    // fetch club name
     const fetchClub = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/clubs/${clubId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          `http://localhost:5000/api/clubs/${clubId}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
         setClubName(res.data.name);
       } catch (err) {
         console.error(err);
       }
     };
     fetchClub();
-  }, [clubId]);
+  }, [clubId, token]);
+
+  const tabs = ["Discussions", "Events", "Polls", "Documents"];
 
   const renderActiveTab = () => {
     switch (activeTab) {
       case "Discussions":
-        return <Discussions clubId={clubId} />;
+        return <Discussions clubId={clubId} token={token} />;
       case "Events":
-        return <Events clubId={clubId} />;
+        return <Events clubId={clubId} token={token} />;
       case "Polls":
-        return <Polls clubId={clubId} />;
+        return <Polls clubId={clubId} token={token} />;
       case "Documents":
-        return <Documents clubId={clubId} />;
+        return <Documents clubId={clubId} token={token} />;
       default:
         return null;
     }
   };
 
-  const tabs = ["Discussions", "Events", "Polls", "Documents"];
-
   return (
-    <div className="min-h-screen bg-purple-950 text-white p-8">
-      {/* Club Name */}
-      <h1 className="font-pixel text-3xl mb-4">{clubName}</h1>
+    <div className="min-h-screen bg-purple-950 text-white">
+      {/* Club Name Bar */}
+      <div className="w-full bg-white py-6">
+        <h1 className="text-center text-purple-900 font-pixel text-3xl">
+          {clubName || "Club"}
+        </h1>
+      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 font-pixel rounded ${
-              activeTab === tab
-                ? "bg-blue-400 text-purple-950"
-                : "bg-purple-900 border border-blue-400"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Tabs in rounded rectangle */}
+      <div className="flex justify-center mt-6">
+        <div className="bg-purple-900 rounded-full p-1 flex gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-2 rounded-full transition-all duration-300 ${
+                activeTab === tab
+                  ? "bg-white text-purple-900 font-bold shadow-lg"
+                  : "text-white"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Active Tab Content */}
-      {renderActiveTab()}
+      <div className="mt-8 px-6">{renderActiveTab()}</div>
     </div>
   );
 }

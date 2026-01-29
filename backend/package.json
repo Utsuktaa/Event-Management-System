@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.91.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "cookie-parser": "^1.4.7",
@@ -16,6 +17,7 @@
     "dotenv": "^16.0.3",
     "epress": "^0.0.1-security",
     "express": "^4.18.2",
+    "firebase-admin": "^13.6.0",
     "googleapis": "^148.0.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.20.2",

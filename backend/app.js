@@ -1,24 +1,30 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const authRoutes = require("./routes/auth.route");
+dotenv.config();
+
 const connectDB = require("./db/connectDB");
+
+const authRoutes = require("./routes/auth.route");
 const adminRoutes = require("./routes/admin.route");
 const eventRoutes = require("./routes/event.route");
 const clubRoutes = require("./routes/club.route");
-dotenv.config();
+const documentRoutes = require("./routes/document.route");
 
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: "http://localhost:5173" })); // or just app.use(cors()) for all origins
 app.use(express.json());
+
 connectDB();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/clubs", clubRoutes);
+app.use("/api/documents", documentRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });

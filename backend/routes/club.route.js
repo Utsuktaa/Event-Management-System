@@ -35,14 +35,14 @@ router.post(
   "/:clubId/posts",
   verifyToken,
   verifyClubAccess,
-  controller.createPost
+  controller.createPost,
 );
 
 router.get(
   "/:clubId/posts",
   verifyToken,
   verifyClubAccess,
-  controller.getClubPosts
+  controller.getClubPosts,
 );
 
 module.exports = router;
