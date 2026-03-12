@@ -15,7 +15,7 @@ function EventCard({ event }) {
       className="bg-purple-900 rounded-xl border border-blue-400 overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
     >
       <div className="h-40 w-full overflow-hidden">
-        <img
+        <imgk
           src={event.imageUrl || "/placeholder.png"}
           alt={event.title}
           className="object-cover w-full h-full"

@@ -5,7 +5,6 @@ import { CalendarPlus, X, Clock, MapPin } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 import { useNavigate } from "react-router-dom";
 
-
 //Toast
 function Toast({ message, type, onClose }) {
   return (
@@ -34,7 +33,6 @@ export default function ClubAdminCreateEvent() {
   const { eventId } = useParams();
   const navigate = useNavigate();
 
-
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -50,7 +48,7 @@ export default function ClubAdminCreateEvent() {
   const fetchEvents = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/events/club/${clubId}`
+        `http://localhost:5000/api/events/club/${clubId}`,
       );
       setEvents(res.data);
     } catch (err) {
@@ -80,14 +78,14 @@ export default function ClubAdminCreateEvent() {
         formData.append("file", imageFile);
         formData.append(
           "upload_preset",
-          import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+          import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
         );
 
         const cloudRes = await axios.post(
           `https://api.cloudinary.com/v1_1/${
             import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
           }/image/upload`,
-          formData
+          formData,
         );
 
         imageUrl = cloudRes.data.secure_url;
@@ -107,7 +105,7 @@ export default function ClubAdminCreateEvent() {
         await axios.put(
           `http://localhost:5000/api/events/${editingEventId}`,
           payload,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         showToast("Event updated successfully");
       } else {
@@ -217,8 +215,8 @@ export default function ClubAdminCreateEvent() {
                 ? "Updating..."
                 : "Creating..."
               : editingEventId
-              ? "Update Event"
-              : "Create Event"}
+                ? "Update Event"
+                : "Create Event"}
           </button>
 
           {editingEventId && (

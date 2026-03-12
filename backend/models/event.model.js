@@ -7,6 +7,19 @@ const EventSchema = new Schema(
     date: { type: Date, required: true },
     location: { type: String },
     imageUrl: { type: String },
+    qrToken: {
+      type: String,
+    },
+    latitude: {
+      type: Number,
+    },
+    longitude: {
+      type: Number,
+    },
+    attendanceRadius: {
+      type: Number,
+      default: 100,
+    },
     visibility: {
       type: String,
       enum: ["club", "school"],
@@ -25,7 +38,7 @@ const EventSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = model("Event", EventSchema);

@@ -10,12 +10,13 @@ router.get("/club/:clubId", eventController.getEventsByClub);
 router.post(
   "/:eventId/register",
   verifyToken,
-  eventController.registerForEvent
+  eventController.registerForEvent,
 );
 router.get(
   "/registrations",
   verifyToken,
-  eventController.getStudentRegistrations
+  eventController.getStudentRegistrations,
 );
+router.post("/attendance", verifyToken, eventController.markAttendance);
 
 module.exports = router;
