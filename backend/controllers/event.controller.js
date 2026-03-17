@@ -1,7 +1,10 @@
 const Event = require("../models/event.model");
 const ClubAdmin = require("../models/clubAdmin.model");
 const EventRegistration = require("../models/eventRegistration.model");
-const User = require("../models/User.model");
+const User = require("../models/user.model");
+const crypto = require("crypto");
+const Attendance = require("../models/attendance.model");
+const QRCode = require("qrcode");
 
 exports.createEvent = async (req, res) => {
   try {
@@ -27,7 +30,7 @@ exports.createEvent = async (req, res) => {
 
       if (!admin) return res.status(403).json({ message: "Not club admin" });
     }
-
+    const qrToken = crypto.randomBytes(16).toString("hex");
     const event = await Event.create({
       title,
       description,
@@ -37,9 +40,14 @@ exports.createEvent = async (req, res) => {
       clubId: clubId || req.user.clubId,
       createdBy: req.user.userId,
       imageUrl: imageUrl || "",
+      qrToken,
     });
-
-    res.status(201).json(event);
+    const scanUrl = `http://localhost:3000/scan?eventId=${event._id}&token=${event.qrToken}`;
+    const qrImage = await QRCode.toDataURL(scanUrl);
+    res.status(201).json({
+      event,
+      qr: qrImage,
+    });
   } catch (err) {
     console.error("Create Event Error:", err);
     res
@@ -119,7 +127,7 @@ exports.getStudentRegistrations = async (req, res) => {
     const studentId = req.user.userId;
 
     const registrations = await EventRegistration.find({ studentId }).populate(
-      "eventId"
+      "eventId",
     );
 
     const events = registrations.map((r) => r.eventId);

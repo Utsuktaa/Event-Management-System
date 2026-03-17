@@ -4,7 +4,15 @@ import axios from "axios";
 import { CalendarPlus, X, Clock, MapPin } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 import { useNavigate } from "react-router-dom";
-
+import { QRCodeCanvas } from "qrcode.react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Circle,
+  useMapEvents,
+} from "react-leaflet";
+import L from "leaflet";
 
 //Toast
 function Toast({ message, type, onClose }) {
@@ -22,6 +30,26 @@ function Toast({ message, type, onClose }) {
   );
 }
 
+// map component
+function LocationSelector({ latLng, setLatLng, radius, setRadius }) {
+  useMapEvents({
+    click(e) {
+      setLatLng({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
+
+  return latLng.lat && latLng.lng ? (
+    <>
+      <Marker position={[latLng.lat, latLng.lng]} />
+      <Circle
+        center={[latLng.lat, latLng.lng]}
+        radius={radius}
+        pathOptions={{ color: "blue", fillOpacity: 0.2 }}
+      />
+    </>
+  ) : null;
+}
+
 export default function ClubAdminCreateEvent() {
   const { clubId } = useParams();
 
@@ -34,7 +62,6 @@ export default function ClubAdminCreateEvent() {
   const { eventId } = useParams();
   const navigate = useNavigate();
 
-
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -46,11 +73,13 @@ export default function ClubAdminCreateEvent() {
     setToast({ message, type });
     setTimeout(() => setToast(null), duration);
   };
-
+  const [latLng, setLatLng] = useState({ lat: null, lng: null });
+  const [radius, setRadius] = useState(50); // default 50 meters
+  const userJwt = getTokenFromCookies();
   const fetchEvents = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/events/club/${clubId}`
+        `http://localhost:5000/api/events/club/${clubId}`,
       );
       setEvents(res.data);
     } catch (err) {
@@ -64,7 +93,6 @@ export default function ClubAdminCreateEvent() {
     fetchEvents();
   }, [clubId]);
 
-  /* ---------- Submit (Create / Update) ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -80,14 +108,14 @@ export default function ClubAdminCreateEvent() {
         formData.append("file", imageFile);
         formData.append(
           "upload_preset",
-          import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+          import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
         );
 
         const cloudRes = await axios.post(
           `https://api.cloudinary.com/v1_1/${
             import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
           }/image/upload`,
-          formData
+          formData,
         );
 
         imageUrl = cloudRes.data.secure_url;
@@ -101,13 +129,16 @@ export default function ClubAdminCreateEvent() {
         visibility,
         clubId,
         imageUrl,
+        latitude: latLng.lat,
+        longitude: latLng.lng,
+        attendanceRadius: radius,
       };
 
       if (editingEventId) {
         await axios.put(
           `http://localhost:5000/api/events/${editingEventId}`,
           payload,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         showToast("Event updated successfully");
       } else {
@@ -146,11 +177,11 @@ export default function ClubAdminCreateEvent() {
     setVisibility("club");
     setImageFile(null);
   };
+  const [qrToggles, setQrToggles] = useState({});
 
   return (
     <div className="min-h-screen bg-purple-950 text-white flex flex-col sm:flex-row gap-8 px-6 py-16">
-      {/* ---------- Form ---------- */}
-      <div className="w-full max-w-xl border border-blue-400 p-8 rounded-xl">
+      <div className="w-full max-w-xl border border-blue-400 p-8 rounded-xl flex flex-col">
         <div className="flex items-center gap-4 mb-6">
           <div className="p-3 border-4 border-blue-400 rounded-md">
             <CalendarPlus className="w-6 h-6" />
@@ -160,7 +191,7 @@ export default function ClubAdminCreateEvent() {
           </h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -208,24 +239,49 @@ export default function ClubAdminCreateEvent() {
             className="w-full"
           />
 
+          <div className="h-64 w-full border border-blue-400 rounded">
+            <MapContainer
+              center={latLng.lat ? [latLng.lat, latLng.lng] : [27.7, 85.3]}
+              zoom={latLng.lat ? 15 : 12}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <LocationSelector
+                latLng={latLng}
+                setLatLng={setLatLng}
+                radius={radius}
+              />
+            </MapContainer>
+          </div>
+
+          <div className="flex gap-2 mt-2 items-center w-max">
+            <label className="text-sm text-white">Radius (m):</label>
+            <input
+              type="number"
+              value={radius}
+              onChange={(e) => setRadius(Number(e.target.value))}
+              className="p-2 rounded w-24 text-white bg-purple-900 border border-blue-400"
+            />
+          </div>
+
           <button
             disabled={loading}
-            className="w-full py-3 border border-blue-400 font-pixel uppercase hover:bg-blue-400 hover:text-purple-950"
+            className="w-full py-3 border border-blue-400 font-pixel uppercase hover:bg-blue-400 hover:text-purple-950 mt-4"
           >
             {loading
               ? editingEventId
                 ? "Updating..."
                 : "Creating..."
               : editingEventId
-              ? "Update Event"
-              : "Create Event"}
+                ? "Update Event"
+                : "Create Event"}
           </button>
 
           {editingEventId && (
             <button
               type="button"
               onClick={resetForm}
-              className="w-full py-2 border border-red-400 font-pixel"
+              className="w-full py-2 border border-red-400 font-pixel mt-2"
             >
               Cancel Edit
             </button>
@@ -233,7 +289,6 @@ export default function ClubAdminCreateEvent() {
         </form>
       </div>
 
-      {/* ---------- Events List ---------- */}
       <div className="w-full max-w-xl border border-blue-400 p-6 rounded-xl">
         <h2 className="font-pixel text-2xl mb-4">Current Events</h2>
 
@@ -243,33 +298,56 @@ export default function ClubAdminCreateEvent() {
           <p>No events yet.</p>
         ) : (
           <ul className="space-y-4">
-            {events.map((event) => (
-              <li
-                key={event._id}
-                className="p-4 border border-blue-400 bg-purple-900 rounded flex justify-between"
-              >
-                <div>
-                  <h3 className="font-pixel text-xl">{event.title}</h3>
-                  <div className="text-sm text-gray-300 flex gap-4">
-                    <span className="flex gap-1 items-center">
-                      <Clock className="w-4 h-4" />
-                      {new Date(event.date).toLocaleDateString()}
-                    </span>
-                    <span className="flex gap-1 items-center">
-                      <MapPin className="w-4 h-4" />
-                      {event.location}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleEdit(event)}
-                  className="px-3 py-1 border border-blue-400 font-pixel hover:bg-blue-400 hover:text-purple-950"
+            {events.map((event) => {
+              return (
+                <li
+                  key={event._id}
+                  className="p-4 border border-blue-400 bg-purple-900 rounded flex flex-col gap-2"
                 >
-                  Edit
-                </button>
-              </li>
-            ))}
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-pixel text-xl">{event.title}</h3>
+                      <div className="text-sm text-gray-300 flex gap-4">
+                        <span className="flex gap-1 items-center">
+                          <Clock className="w-4 h-4" />
+                          {new Date(event.date).toLocaleDateString()}
+                        </span>
+                        <span className="flex gap-1 items-center">
+                          <MapPin className="w-4 h-4" />
+                          {event.location}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(event)}
+                        className="px-3 py-1 border border-blue-400 font-pixel hover:bg-blue-400 hover:text-purple-950"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() =>
+                          setQrToggles((prev) => ({
+                            ...prev,
+                            [event._id]: !prev[event._id],
+                          }))
+                        }
+                        className="px-3 py-1 border border-blue-400 font-pixel hover:bg-blue-400 hover:text-purple-950"
+                      >
+                        {qrToggles[event._id] ? "Hide QR" : "Show QR"}
+                      </button>
+                    </div>
+                  </div>
+                  {qrToggles[event._id] && event.qrToken && (
+                    <QRCodeCanvas
+                      value={`https://d6ca-2400-1a00-3b2e-54fc-9c00-9c90-e3d6-c230.ngrok-free.app/scan?eventId=${event._id}&token=${event.qrToken}`}
+                      size={128}
+                      className="mt-2 border border-gray-400 rounded"
+                    />
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

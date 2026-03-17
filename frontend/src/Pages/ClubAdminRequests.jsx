@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import Toast from "../components/Toast";
+import Toast from "../Components/Toast";
 import { getTokenFromCookies } from "../Utils/auth";
 
 export default function ClubAdminRequests() {
@@ -23,7 +23,7 @@ export default function ClubAdminRequests() {
         `http://localhost:5000/api/clubs/${clubId}/requests`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setRequests(res.data);
     } catch (err) {
@@ -43,7 +43,7 @@ export default function ClubAdminRequests() {
       await axios.patch(
         `http://localhost:5000/api/clubs/${clubId}/requests/${memberId}/approve`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       showToast("Member approved");

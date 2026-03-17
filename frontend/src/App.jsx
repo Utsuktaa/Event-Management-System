@@ -8,8 +8,11 @@ import ClubAdminDashboard from "./Pages/ClubAdminDashboard.jsx";
 import JoinClubs from "./Pages/JoinClubs.jsx";
 import JoinClubPage from "./Pages/JoinClubPage.jsx";
 import ClubAdminRequests from "./Pages/ClubAdminRequests";
-import RegisteredEvents from "./Pages/RegisteredEvents.jsx"; 
-import ClubMemberDashboard from "./Pages/ClubMemberDashboard.jsx"; 
+import RegisteredEvents from "./Pages/RegisteredEvents.jsx";
+import ClubMemberDashboard from "./Pages/ClubMemberDashboard.jsx";
+import ScanAttendance from "./Pages/ScanAttendance";
+import AssignAdmins from "./Pages/AssignAdmins";
+import AttendanceAnalytics from "./pages/AttendanceAnalytics";
 
 function App() {
   return (
@@ -23,12 +26,16 @@ function App() {
       <Route path="/join-clubs" element={<JoinClubs />} />
       <Route path="/clubs/:clubId/join" element={<JoinClubPage />} />
       <Route path="/clubs/:clubId" element={<ClubMemberDashboard />} />
+      <Route path="/scan" element={<ScanAttendance />} />
+      <Route path="/assign-admins" element={<AssignAdmins />} />
+      <Route path="/attendance-analytics" element={<AttendanceAnalytics />} />
 
       <Route
         path="/club-admin/:clubId/requests"
         element={<ClubAdminRequests />}
       />
       <Route path="/my-events" element={<RegisteredEvents />} />
+      <Route path="/scan" element={<ScanAttendance />} />
     </Routes>
   );
 }
