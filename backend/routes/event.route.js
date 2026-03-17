@@ -17,5 +17,6 @@ router.get(
   verifyToken,
   eventController.getStudentRegistrations,
 );
+router.post("/attendance", verifyToken, eventController.markAttendance);
 
 module.exports = router;

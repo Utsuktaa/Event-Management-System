@@ -138,3 +138,52 @@ exports.getStudentRegistrations = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// attendance function
+
+exports.markAttendance = async (req, res) => {
+  try {
+    const { eventId, token, lat, lng } = req.body;
+    const studentId = req.user.userId;
+
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (event.qrToken !== token) {
+      return res.status(400).json({ message: "Invalid QR token" });
+    }
+
+    const registration = await EventRegistration.findOne({
+      eventId,
+      studentId,
+    });
+
+    if (!registration) {
+      return res
+        .status(403)
+        .json({ message: "You are not registered for this event" });
+    }
+
+    const existing = await Attendance.findOne({
+      eventId,
+      studentId,
+    });
+
+    if (existing) {
+      return res.status(400).json({ message: "Attendance already recorded" });
+    }
+
+    await Attendance.create({
+      eventId,
+      studentId,
+    });
+
+    res.json({ message: "Attendance marked successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Attendance failed" });
+  }
+};

@@ -4,15 +4,6 @@ import axios from "axios";
 import { CalendarPlus, X, Clock, MapPin } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 import { useNavigate } from "react-router-dom";
-import { QRCodeCanvas } from "qrcode.react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Circle,
-  useMapEvents,
-} from "react-leaflet";
-import L from "leaflet";
 
 //Toast
 function Toast({ message, type, onClose }) {
