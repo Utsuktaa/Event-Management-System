@@ -8,8 +8,18 @@ const QRCode = require("qrcode");
 
 exports.createEvent = async (req, res) => {
   try {
-    const { title, description, date, visibility, clubId, location, imageUrl } =
-      req.body;
+    const {
+      title,
+      description,
+      date,
+      visibility,
+      clubId,
+      location,
+      imageUrl,
+      latitude,
+      longitude,
+      attendanceRadius,
+    } = req.body;
 
     if (!title || !date || !visibility) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -41,9 +51,14 @@ exports.createEvent = async (req, res) => {
       createdBy: req.user.userId,
       imageUrl: imageUrl || "",
       qrToken,
+      latitude,          
+      longitude,         
+      attendanceRadius,  
     });
+
     const scanUrl = `http://localhost:3000/scan?eventId=${event._id}&token=${event.qrToken}`;
     const qrImage = await QRCode.toDataURL(scanUrl);
+
     res.status(201).json({
       event,
       qr: qrImage,

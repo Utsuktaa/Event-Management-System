@@ -1,58 +1,9 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import axios from "axios";
-import { getTokenFromCookies } from "../Utils/auth";
-
-export default function ScanAttendance() {
-  const [searchParams] = useSearchParams();
-
-  const eventId = searchParams.get("eventId");
-  const token = searchParams.get("token");
-
-  useEffect(() => {
-    const markAttendance = () => {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        const jwt = getTokenFromCookies();
-
-        try {
-          const res = await axios.post(
-            "http://localhost:5000/api/events/attendance",
-            {
-              eventId,
-              token,
-              lat,
-              lng,
-            },
-            {
-              headers: { Authorization: `Bearer ${jwt}` },
-            },
-          );
-
-          alert(res.data.message);
-        } catch (err) {
-          alert(err.response?.data?.message || "Attendance failed");
-        }
-      });
-    };
-
-    markAttendance();
-  }, []);
-
-  return (
-    <div style={{ padding: 40 }}>
-      <h1>Processing attendance</h1>
-    </div>
-  );
-}
-
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { getTokenFromCookies } from "../Utils/auth";
 import { X } from "lucide-react";
+import { API_BASE } from "../config";
 
 function Toast({ message, type, onClose }) {
   return (
@@ -75,6 +26,7 @@ export default function ScanAttendance() {
   const [success, setSuccess] = useState(false);
 
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const eventId = searchParams.get("eventId");
   const qrToken = searchParams.get("token");
 
@@ -84,16 +36,25 @@ export default function ScanAttendance() {
   };
 
   useEffect(() => {
-    const markAttendance = async () => {
+    const markAttendance = async (lat, lng) => {
       try {
         const token = getTokenFromCookies();
-        if (!token) throw new Error("Not logged in");
+
+        if (!token) {
+          // User not logged in, redirect to signup
+          const redirectUrl = encodeURIComponent(
+            `/scan?eventId=${eventId}&token=${qrToken}`,
+          );
+          window.location.href = `${FRONTEND_BASE_URL}/signup?redirect=${redirectUrl}`;
+          return;
+        }
 
         if (!eventId || !qrToken) throw new Error("Invalid QR link");
 
+        // Send attendance with coordinates
         const res = await axios.post(
-          `hhttps://d6ca-2400-1a00-3b2e-54fc-9c00-9c90-e3d6-c230.ngrok-free.app/api/attendance/mark`,
-          { eventId, token: qrToken },
+          `${API_BASE}/api/attendance/mark`,
+          { eventId, token: qrToken, lat, lng },
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
@@ -107,7 +68,22 @@ export default function ScanAttendance() {
       }
     };
 
-    markAttendance();
+    // Request geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          markAttendance(latitude, longitude);
+        },
+        (err) => {
+          showToast("Unable to get location: " + err.message, "error");
+          setLoading(false);
+        },
+      );
+    } else {
+      showToast("Geolocation not supported by your browser", "error");
+      setLoading(false);
+    }
   }, [eventId, qrToken]);
 
   return (

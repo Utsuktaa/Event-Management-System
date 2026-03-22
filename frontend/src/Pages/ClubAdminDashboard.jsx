@@ -4,6 +4,16 @@ import axios from "axios";
 import { CalendarPlus, X, Clock, MapPin } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 import { useNavigate } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Circle,
+  useMapEvents,
+} from "react-leaflet";
+import L from "leaflet";
+import { API_BASE } from "../config";
 
 //Toast
 function Toast({ message, type, onClose }) {
@@ -124,7 +134,12 @@ export default function ClubAdminCreateEvent() {
         longitude: latLng.lng,
         attendanceRadius: radius,
       };
-
+      if (!latLng.lat || !latLng.lng) {
+        showToast("Select a location on the map", "error");
+        setLoading(false);
+        return;
+      }
+      console.log("Submitting event with latLng:", latLng);
       if (editingEventId) {
         await axios.put(
           `http://localhost:5000/api/events/${editingEventId}`,
@@ -331,7 +346,7 @@ export default function ClubAdminCreateEvent() {
                   </div>
                   {qrToggles[event._id] && event.qrToken && (
                     <QRCodeCanvas
-                      value={`https://d6ca-2400-1a00-3b2e-54fc-9c00-9c90-e3d6-c230.ngrok-free.app/scan?eventId=${event._id}&token=${event.qrToken}`}
+                      value={`${API_BASE}/scan?eventId=${event._id}&token=${event.qrToken}`}
                       size={128}
                       className="mt-2 border border-gray-400 rounded"
                     />

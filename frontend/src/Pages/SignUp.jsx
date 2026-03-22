@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import SignUpWithGoogle from "../Components/SignUpWithGoogle";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 const SignUp = () => {
@@ -10,7 +10,19 @@ const SignUp = () => {
   });
 
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const searchParams = new URLSearchParams(location.search);
+  const redirect = searchParams.get("redirect");
+  const handleSignup = async () => {
+    localStorage.setItem("token", token);
+
+    if (redirect) {
+      navigate(redirect);
+    } else {
+      navigate("/");
+    }
+  };
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -125,7 +137,6 @@ const SignUp = () => {
           </p>
         </form>
       </div>
-      
     </GoogleOAuthProvider>
   );
 };
