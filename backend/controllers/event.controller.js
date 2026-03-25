@@ -51,9 +51,9 @@ exports.createEvent = async (req, res) => {
       createdBy: req.user.userId,
       imageUrl: imageUrl || "",
       qrToken,
-      latitude,          
-      longitude,         
-      attendanceRadius,  
+      latitude,
+      longitude,
+      attendanceRadius,
     });
 
     const scanUrl = `http://localhost:3000/scan?eventId=${event._id}&token=${event.qrToken}`;

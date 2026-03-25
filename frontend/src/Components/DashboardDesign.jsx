@@ -11,27 +11,18 @@ import {
 } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 
-export default function DashboardDesign() {
+export default function Dashboard() {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [expandedEvent, setExpandedEvent] = useState(null);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [registeredEvents, setRegisteredEvents] = useState([]);
-  const [showRegisteredOnly, setShowRegisteredOnly] = useState(false);
 
   const cards = [
-    { icon: Calendar, title: "Attendance", desc: "View your attendance" },
-    { icon: Users, title: "Leaderboard", desc: "View badges and points" },
-    {
-      icon: FileText,
-      title: "View Events",
-      desc: "View events you have registered",
-    },
-    {
-      icon: BarChart2,
-      title: "Join Clubs",
-      desc: "Join a club to view club-only events",
-    },
+    { icon: Calendar, title: "Attendance", desc: "Track your presence" },
+    { icon: Users, title: "Leaderboard", desc: "See your ranking" },
+    { icon: FileText, title: "View Events", desc: "Your registered events" },
+    { icon: BarChart2, title: "Join Clubs", desc: "Unlock club events" },
   ];
 
   useEffect(() => {
@@ -40,33 +31,32 @@ export default function DashboardDesign() {
         const res = await axios.get(
           "http://localhost:5000/api/events/school-events",
         );
-        setEvents(res.data);
+        setEvents(res.data || []);
       } catch (err) {
         console.error("Failed to fetch events:", err);
       } finally {
         setLoadingEvents(false);
       }
     };
+
+    const fetchRegistered = async () => {
+      const token = getTokenFromCookies();
+      if (!token) return;
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/events/registrations",
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        const validIds =
+          res.data.events?.map((e) => e?._id).filter(Boolean) || [];
+        setRegisteredEvents(validIds);
+      } catch (err) {
+        console.error("Failed to fetch registrations:", err);
+        setRegisteredEvents([]);
+      }
+    };
+
     fetchEvents();
-  }, []);
-
-  const fetchRegistered = async () => {
-    const token = getTokenFromCookies();
-    if (!token) return;
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/events/registrations",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      setRegisteredEvents(res.data.events.map((e) => e._id));
-    } catch (err) {
-      console.error("Failed to fetch registrations:", err);
-    }
-  };
-
-  useEffect(() => {
     fetchRegistered();
   }, []);
 
@@ -75,116 +65,111 @@ export default function DashboardDesign() {
     if (title === "View Events") navigate("/my-events");
   };
 
-  const toggleExpand = (eventId) => {
-    setExpandedEvent(expandedEvent === eventId ? null : eventId);
+  const toggleExpand = (id) =>
+    setExpandedEvent(expandedEvent === id ? null : id);
+
+  const handleRegister = async (e, eventId, isRegistered) => {
+    e.stopPropagation();
+    if (!eventId || isRegistered) return;
+
+    const token = getTokenFromCookies();
+    if (!token) return;
+
+    try {
+      await axios.post(
+        `http://localhost:5000/api/events/${eventId}/register`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setRegisteredEvents((prev) => [...prev, eventId]);
+    } catch (err) {
+      if (err.response?.status === 400 || err.response?.status === 409) {
+        setRegisteredEvents((prev) => [...prev, eventId]);
+      } else {
+        alert(
+          err.response?.data?.message || "Something went wrong. Try again.",
+        );
+      }
+    }
   };
 
-  const displayedEvents = showRegisteredOnly
-    ? events.filter((e) => registeredEvents.includes(e._id))
-    : events;
-
   return (
-    <div className="min-h-screen bg-purple-950 relative overflow-hidden font-poppins text-white">
-      <div className="fixed inset-0 scanlines pointer-events-none z-10" />
-      <div className="relative z-20 max-w-6xl mx-auto px-6 py-12">
-        <section className="mb-16">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-1 flex-1 bg-blue-400" />
-            <h2 className="font-pixel text-3xl uppercase tracking-wider">
-              Upcoming Events
-            </h2>
-            <div className="h-1 flex-1 bg-blue-400" />
-          </div>
+    <div className="min-h-screen bg-purple-50/40 font-poppins text-gray-900">
+      <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-16">
+        {/* EVENTS SECTION */}
+        <section className="bg-white/80 rounded-3xl p-8 border border-purple-200 shadow-sm space-y-6 relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full opacity-30 pointer-events-none" />
+          <h1 className="text-3xl font-bold text-gray-900">Upcoming Events</h1>
 
           {loadingEvents ? (
-            <p className="text-center font-pixel text-lg">Loading events...</p>
-          ) : displayedEvents.length === 0 ? (
-            <p className="text-center font-pixel text-lg">
-              {showRegisteredOnly
-                ? "You have not registered for any events."
-                : "No events available."}
-            </p>
+            <p className="text-sm text-gray-500">Loading something exciting…</p>
+          ) : events.length === 0 ? (
+            <div className="text-center py-16 space-y-3">
+              <div className="text-5xl">🎈</div>
+              <p className="text-gray-600 text-sm">It’s quiet here… for now.</p>
+            </div>
           ) : (
-            <div className="space-y-4">
-              {displayedEvents.map((event, i) => {
+            <div className="space-y-6">
+              {events.map((event) => {
                 const isExpanded = expandedEvent === event._id;
+                const isRegistered = registeredEvents.includes(event._id);
+
                 return (
                   <div
                     key={event._id}
-                    className={`p-4 sm:p-6 border border-blue-400 bg-purple-950 cursor-pointer group transition-transform hover:translate-x-1 hover:-translate-y-1 flex flex-col sm:flex-row gap-3 ${
-                      isExpanded ? "bg-purple-900" : ""
-                    }`}
-                    style={{ animationDelay: `${i * 100}ms` }}
                     onClick={() => toggleExpand(event._id)}
+                    className="relative bg-white rounded-3xl border border-purple-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-150 p-6 cursor-pointer overflow-hidden"
                   >
-                    <div className="flex-1">
-                      <h3 className="font-pixel text-2xl sm:text-3xl mb-1">
-                        {event.title}
-                      </h3>
-                      <div className="flex flex-wrap gap-4 font-pixel text-base sm:text-lg mb-1">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4 text-blue-400" />
-                          {new Date(event.date).toLocaleDateString()}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4 text-blue-400" />
-                          {event.location}
-                        </span>
-                      </div>
+                    <div className="absolute -top-6 -right-6 w-24 h-24 bg-purple-200 rounded-full opacity-40 pointer-events-none" />
 
-                      {isExpanded && (
-                        <div className="space-y-2 mt-2">
-                          <p className="font-pixel text-base sm:text-lg">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {event.title}
+                    </h3>
+                    <div className="flex gap-6 text-sm text-gray-500 mt-2">
+                      <span className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                        {new Date(event.date).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                        {event.location}
+                      </span>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-4 flex flex-col sm:flex-row gap-4">
+                        {/* Left side: text + button */}
+                        <div className="flex-1 flex flex-col gap-2">
+                          <p className="text-sm text-gray-600">
                             {event.description}
                           </p>
                           <button
-                            disabled={registeredEvents.includes(event._id)}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const token = getTokenFromCookies();
-                              try {
-                                await axios.post(
-                                  `http://localhost:5000/api/events/${event._id}/register`,
-                                  {},
-                                  {
-                                    headers: {
-                                      Authorization: `Bearer ${token}`,
-                                    },
-                                  },
-                                );
-                                setRegisteredEvents([
-                                  ...registeredEvents,
-                                  event._id,
-                                ]);
-                              } catch (err) {
-                                alert(
-                                  err.response?.data?.message ||
-                                    "Registration failed",
-                                );
-                              }
-                            }}
-                            className={`px-3 py-1 border border-blue-400 font-pixel text-base uppercase ${
-                              registeredEvents.includes(event._id)
-                                ? "bg-gray-500 text-white cursor-not-allowed"
-                                : "hover:bg-blue-400 hover:text-purple-950 transition"
+                            disabled={isRegistered}
+                            onClick={(e) =>
+                              handleRegister(e, event._id, isRegistered)
+                            }
+                            className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-150 ${
+                              isRegistered
+                                ? "bg-purple-100 text-purple-500 cursor-not-allowed"
+                                : "bg-purple-400 text-white hover:bg-purple-500 active:scale-95 shadow-sm hover:shadow-md"
                             }`}
+                            style={{ width: "fit-content" }} // button width fits text exactly
                           >
-                            {registeredEvents.includes(event._id)
-                              ? "Registered"
-                              : "Register"}
+                            {isRegistered ? "You’re in! 🎉" : "Join the fun"}
                           </button>
                         </div>
-                      )}
-                    </div>
 
-                    {isExpanded && event.imageUrl && (
-                      <div className="flex-shrink-0">
-                        <img
-                          src={event.imageUrl}
-                          alt={event.title}
-                          loading="lazy"
-                          className="w-[4.5cm] h-[6.5cm] object-cover rounded"
-                        />
+                        {/* Right side: image aligned top */}
+                        {event.imageUrl && (
+                          <div className="flex-shrink-0 self-start">
+                            <img
+                              src={event.imageUrl}
+                              alt={event.title}
+                              loading="lazy"
+                              className="w-[4.5cm] h-[6.5cm] object-cover rounded-2xl"
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -194,27 +179,24 @@ export default function DashboardDesign() {
           )}
         </section>
 
-        <section>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-1 flex-1 bg-blue-400" />
-            <h2 className="font-pixel text-3xl uppercase tracking-wider">
-              ★ Quick Actions ★
-            </h2>
-            <div className="h-1 flex-1 bg-blue-400" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {cards.map(({ icon: Icon, title, desc }, i) => (
+        {/* QUICK ACTIONS */}
+        <section className="bg-purple-50/50 rounded-3xl p-8 border border-purple-200 shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Quick Actions
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-6">
+            {cards.map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
                 onClick={() => handleCardClick(title)}
-                className="p-6 cursor-pointer border border-blue-400 bg-purple-950 transition-all duration-200 hover:translate-x-1 hover:-translate-y-1"
-                style={{ animationDelay: `${(i + 3) * 100}ms` }}
+                className="relative bg-white rounded-3xl border border-purple-200 shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-95 transition-all duration-150 p-6 cursor-pointer overflow-hidden"
               >
-                <div className="inline-flex p-3 border-4 border-blue-400 mb-4">
-                  <Icon className="w-6 h-6 text-white" />
+                <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-purple-200 rounded-full opacity-20 pointer-events-none" />
+                <div className="w-12 h-12 rounded-2xl bg-purple-200 flex items-center justify-center mb-4">
+                  <Icon className="w-5 h-5 text-purple-400 stroke-[2.5]" />
                 </div>
-                <h3 className="font-pixel text-2xl mb-1">{title}</h3>
-                <p className="text-base">{desc}</p>
+                <h3 className="font-semibold text-gray-900">{title}</h3>
+                <p className="text-sm text-gray-500 mt-1">{desc}</p>
               </div>
             ))}
           </div>
