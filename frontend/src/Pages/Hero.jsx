@@ -453,7 +453,7 @@ const Hero = () => {
                   }}
                 >
                   <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}
+                    className={`w-12 h-12 rounded-xl bg-linear-to-br ${f.color} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}
                   >
                     <f.icon size={22} color="white" />
                   </div>
