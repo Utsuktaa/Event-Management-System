@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { verifyToken } = require("../middlewares/auth.middleware");
-const isSuperAdmin = require("../middlewares/isSuperAdmin");
+const isAdmin = require("../middlewares/isAdmin");
 const {
   createReport,
   getReportedPosts,
@@ -10,13 +10,11 @@ const {
   restorePost,
 } = require("../controllers/report.controller");
 
-// User routes
 router.post("/", verifyToken, createReport);
 
-// Admin-only routes
-router.get("/admin/posts", verifyToken, isSuperAdmin, getReportedPosts);
-router.patch("/admin/posts/:postId/hide", verifyToken, isSuperAdmin, hidePost);
-router.patch("/admin/posts/:postId/restore", verifyToken, isSuperAdmin, restorePost);
-router.delete("/admin/posts/:postId", verifyToken, isSuperAdmin, deletePost);
+router.get("/admin/posts", verifyToken, isAdmin, getReportedPosts);
+router.patch("/admin/posts/:postId/hide", verifyToken, isAdmin, hidePost);
+router.patch("/admin/posts/:postId/restore", verifyToken, isAdmin, restorePost);
+router.delete("/admin/posts/:postId", verifyToken, isAdmin, deletePost);
 
 module.exports = router;

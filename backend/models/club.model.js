@@ -7,6 +7,11 @@ const ClubSchema = new Schema(
       required: true,
       unique: true,
     },
+    joinPolicy: {
+      type: String,
+      enum: ["OPEN", "APPROVAL_REQUIRED", "CLOSED"],
+      default: "APPROVAL_REQUIRED",
+    },
     documents: [
       {
         type: Schema.Types.ObjectId,
@@ -14,7 +19,7 @@ const ClubSchema = new Schema(
       },
     ],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 module.exports = model("Club", ClubSchema);
