@@ -202,3 +202,124 @@ exports.markAttendance = async (req, res) => {
     res.status(500).json({ message: "Attendance failed" });
   }
 };
+
+
+exports.getAnalyticsOverview = async (req, res) => {
+  try {
+    const events = await Event.find().lean();
+
+    const eventIds = events.map((e) => e._id);
+
+    const [registrations, attendances] = await Promise.all([
+      EventRegistration.find({ eventId: { $in: eventIds } }).lean(),
+      Attendance.find({ eventId: { $in: eventIds } }).lean(),
+    ]);
+
+    // Build per-event maps
+    const regMap = {};
+    const attMap = {};
+    registrations.forEach((r) => {
+      const id = r.eventId.toString();
+      regMap[id] = (regMap[id] || 0) + 1;
+    });
+    attendances.forEach((a) => {
+      const id = a.eventId.toString();
+      attMap[id] = (attMap[id] || 0) + 1;
+    });
+
+    const eventBreakdown = events.map((e) => {
+      const id = e._id.toString();
+      const registered = regMap[id] || 0;
+      const attended = attMap[id] || 0;
+      return {
+        id,
+        name: e.title,
+        date: e.date,
+        visibility: e.visibility,
+        registered,
+        attended,
+        attendanceRate: registered > 0 ? Math.round((attended / registered) * 100) : 0,
+      };
+    });
+
+    const totalRegistrations = registrations.length;
+    const totalAttendance = attendances.length;
+
+    res.json({
+      totalEvents: events.length,
+      totalRegistrations,
+      totalAttendance,
+      overallAttendanceRate:
+        totalRegistrations > 0
+          ? Math.round((totalAttendance / totalRegistrations) * 100)
+          : 0,
+      eventBreakdown,
+    });
+  } catch (err) {
+    console.error("Analytics overview error:", err);
+    res.status(500).json({ message: "Failed to fetch analytics" });
+  }
+};
+
+
+exports.getMonthlyAnalytics = async (req, res) => {
+  try {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const [events, attendances] = await Promise.all([
+      Event.find({ date: { $gte: sixMonthsAgo } }).lean(),
+      Attendance.find({ createdAt: { $gte: sixMonthsAgo } }).lean(),
+    ]);
+
+    const monthLabels = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      monthLabels.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+
+    const eventCounts = {};
+    const attendanceCounts = {};
+    monthLabels.forEach((m) => { eventCounts[m] = 0; attendanceCounts[m] = 0; });
+
+    events.forEach((e) => {
+      const key = `${new Date(e.date).getFullYear()}-${String(new Date(e.date).getMonth() + 1).padStart(2, "0")}`;
+      if (eventCounts[key] !== undefined) eventCounts[key]++;
+    });
+    attendances.forEach((a) => {
+      const key = `${new Date(a.createdAt).getFullYear()}-${String(new Date(a.createdAt).getMonth() + 1).padStart(2, "0")}`;
+      if (attendanceCounts[key] !== undefined) attendanceCounts[key]++;
+    });
+
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const result = monthLabels.map((m) => {
+      const [, month] = m.split("-");
+      return {
+        month: monthNames[parseInt(month, 10) - 1],
+        events: eventCounts[m],
+        attendance: attendanceCounts[m],
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("Monthly analytics error:", err);
+    res.status(500).json({ message: "Failed to fetch monthly analytics" });
+  }
+};
+
+
+exports.getVisibilityDistribution = async (req, res) => {
+  try {
+    const result = await Event.aggregate([
+      { $group: { _id: "$visibility", count: { $sum: 1 } } },
+    ]);
+    res.json(result.map((r) => ({ name: r._id, value: r.count })));
+  } catch (err) {
+    console.error("Visibility distribution error:", err);
+    res.status(500).json({ message: "Failed to fetch distribution" });
+  }
+};
