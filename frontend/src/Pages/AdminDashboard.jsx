@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { clearAuthCookies } from "../Utils/auth";
-import { Shield, BarChart2, Calendar, FileText } from "lucide-react";
+import { Shield, BarChart2, Flag, FileText } from "lucide-react";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -24,10 +24,10 @@ export default function AdminDashboard() {
       route: "/attendance-analytics",
     },
     {
-      icon: Calendar,
-      title: "Event Management",
-      desc: "Create and manage events",
-      route: "/event-management",
+      icon: Flag,
+      title: "Moderation",
+      desc: "Review reported posts and comments",
+      route: "/moderation",
     },
     {
       icon: FileText,

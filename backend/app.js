@@ -11,6 +11,7 @@ const eventRoutes = require("./routes/event.route");
 const clubRoutes = require("./routes/club.route");
 const documentRoutes = require("./routes/document.route");
 const attendanceRoutes = require("./routes/attendance.route");
+const reportRoutes = require("./routes/report.route");
 const scanRoutes = require("./routes/scan");
 const path = require("path");
 const dns = require("dns");
@@ -43,6 +44,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/clubs", clubRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/reports", reportRoutes);
 app.use("/", scanRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);

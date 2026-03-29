@@ -27,6 +27,11 @@ const clubPostSchema = new Schema(
       ref: "ClubPost",
       default: null,
     },
+    status: {
+      type: String,
+      enum: ["visible", "hidden", "deleted"],
+      default: "visible",
+    },
   },
   { timestamps: true },
 );
