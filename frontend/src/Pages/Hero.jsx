@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Logo from "../Components/Logo";
 import { useEffect, useRef, useState } from "react";
 import {
   Calendar,
@@ -193,12 +194,7 @@ const Hero = () => {
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           {/*Logo*/}
-          <span
-            className="text-2xl font-extrabold"
-            style={{ color: "#1E3A8A" }}
-          >
-            Event<span style={{ color: "#7C3AED" }}>Sync</span>
-          </span>
+          <Logo />
 
           <div className="hidden md:flex items-center gap-8">
             {["preview", "features", "event-flow"].map((s) => (
@@ -299,12 +295,7 @@ const Hero = () => {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <h1
-              className="text-5xl md:text-6xl font-extrabold leading-tight mb-4"
-              style={{ color: "#1E3A8A" }}
-            >
-              Event<span style={{ color: "#7C3AED" }}>Sync</span>
-            </h1>
+            <Logo size="lg" />
             <p
               className="text-2xl md:text-3xl font-semibold mb-4"
               style={{ color: "#4C1D95" }}
@@ -601,9 +592,7 @@ const Hero = () => {
           {/* TOP ROW */}
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-10">
             <div>
-              <span className="text-xl font-extrabold text-white">
-                Event<span style={{ color: "#a78bfa" }}>Sync</span>
-              </span>
+              <Logo />
 
               <p
                 className="text-sm mt-3 leading-relaxed"
