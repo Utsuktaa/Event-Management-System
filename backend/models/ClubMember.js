@@ -14,8 +14,13 @@ const ClubMemberSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved"],
-      default: "pending",
+      enum: ["PENDING", "ACTIVE", "REJECTED"],
+      default: "PENDING",
+    },
+    role: {
+      type: String,
+      enum: ["member", "club_admin", "vice_president", "president"],
+      default: "member",
     },
   },
   { timestamps: true }

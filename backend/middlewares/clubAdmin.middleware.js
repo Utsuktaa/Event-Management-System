@@ -1,15 +1,23 @@
-const ClubAdmin = require("../models/clubAdmin.model");
+const ClubMember = require("../models/ClubMember");
+const { hasPermission } = require("../utils/permissions");
 
 const verifyClubAdmin = async (req, res, next) => {
-  const userId = req.user.userId;
-  const { clubId } = req.params;
+  try {
+    const userId = req.user.userId;
+    const { clubId } = req.params;
 
-  const isAdmin = await ClubAdmin.findOne({ clubId, userId });
-  if (!isAdmin) {
-    return res.status(403).json({ message: "Admin access only" });
+    if (req.user.role === "admin") return next();
+
+    const member = await ClubMember.findOne({ clubId, userId, status: "ACTIVE" });
+    if (!member || !hasPermission(member.role, "approve_join_request")) {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
+
+    req.clubMember = member;
+    next();
+  } catch (err) {
+    res.status(500).json({ message: "Permission check failed" });
   }
-
-  next();
 };
 
 module.exports = { verifyClubAdmin };

@@ -1,4 +1,3 @@
-const ClubAdmin = require("../models/clubAdmin.model");
 const ClubMember = require("../models/ClubMember");
 
 const verifyClubAccess = async (req, res, next) => {
@@ -6,19 +5,14 @@ const verifyClubAccess = async (req, res, next) => {
     const userId = req.user.userId;
     const { clubId } = req.params;
 
-    const isAdmin = await ClubAdmin.findOne({ clubId, userId });
-    if (isAdmin) return next();
+    if (req.user.role === "admin") return next();
 
-    const member = await ClubMember.findOne({
-      clubId,
-      userId,
-      status: "approved",
-    });
-
+    const member = await ClubMember.findOne({ clubId, userId, status: "ACTIVE" });
     if (!member) {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    req.clubMember = member;
     next();
   } catch (err) {
     res.status(500).json({ message: "Access check failed" });

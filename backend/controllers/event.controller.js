@@ -1,10 +1,11 @@
 const Event = require("../models/event.model");
-const ClubAdmin = require("../models/clubAdmin.model");
+const ClubMember = require("../models/ClubMember");
 const EventRegistration = require("../models/eventRegistration.model");
 const User = require("../models/user.model");
 const crypto = require("crypto");
 const Attendance = require("../models/attendance.model");
 const QRCode = require("qrcode");
+const { hasPermission } = require("../utils/permissions");
 
 exports.createEvent = async (req, res) => {
   try {
@@ -33,12 +34,16 @@ exports.createEvent = async (req, res) => {
     if (visibility === "club") {
       if (!clubId) return res.status(400).json({ message: "clubId required" });
 
-      const admin = await ClubAdmin.findOne({
-        userId: req.user.userId,
-        clubId,
-      });
-
-      if (!admin) return res.status(403).json({ message: "Not club admin" });
+      if (req.user.role !== "admin") {
+        const membership = await ClubMember.findOne({
+          userId: req.user.userId,
+          clubId,
+          status: "ACTIVE",
+        });
+        if (!membership || !hasPermission(membership.role, "create_event")) {
+          return res.status(403).json({ message: "Insufficient permissions" });
+        }
+      }
     }
     const qrToken = crypto.randomBytes(16).toString("hex");
     const event = await Event.create({
