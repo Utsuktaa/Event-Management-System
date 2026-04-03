@@ -1,51 +1,67 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Settings, LogOut } from "lucide-react";
 import { clearAuthCookies } from "../Utils/auth";
 import DashboardDesign from "../Components/DashboardDesign";
-const UserDashboard = () => {
+import Logo from "../Components/Logo";
+
+export default function UserDashboard() {
   const navigate = useNavigate();
+
   const handleLogout = () => {
     clearAuthCookies();
     navigate("/login");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <nav className="px-6 py-4 flex justify-between items-center bg-white/60 backdrop-blur-md shadow-sm rounded-b-3xl">
-        <h1 className="text-lg font-semibold text-purple-700">
-          User Dashboard
-        </h1>
-        <ul className="flex space-x-4 text-gray-600 text-sm font-medium">
-          {["Home", "Events", "Reports", "Settings"].map((item) => (
-            <li
-              key={item}
-              className="hover:text-purple-900 transition cursor-pointer"
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
+    <div
+      className="min-h-screen font-sans"
+      style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}
+    >
+      <nav
+        className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between"
+        style={{
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 1px 16px rgba(124,58,237,0.07)",
+          borderBottom: "1px solid rgba(124,58,237,0.08)",
+        }}
+      >
+        <Logo />
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate("/settings")}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:bg-purple-50"
+            style={{ color: "#6B7280" }}
+          >
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">Settings</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all hover:opacity-90"
+            style={{
+              background: "linear-gradient(135deg, #1E3A8A, #7C3AED)",
+              color: "white",
+            }}
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </div>
       </nav>
 
-      <header className="py-16 text-center px-6 bg-gradient-to-b from-purple-50 to-pink-50">
-        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-          Welcome to EventSync
-        </h2>
-        <p className="text-gray-500 max-w-md mx-auto text-base sm:text-lg">
-          Explore Events
-        </p>
-      </header>
+      <DashboardDesign />
 
-        <DashboardDesign />
-
-      <footer className="py-10 text-center text-gray-500 text-sm border-t border-gray-200">
-        &copy; 2025 EventSync
+      <footer
+        className="py-8 text-center text-xs border-t"
+        style={{
+          color: "rgba(107,114,128,0.7)",
+          borderColor: "rgba(124,58,237,0.08)",
+        }}
+      >
+        © 2025 EventSync
       </footer>
-      <h2>
-        <button onClick={handleLogout}>Logout</button>
-      </h2>
     </div>
   );
-};
-
-export default UserDashboard;
+}

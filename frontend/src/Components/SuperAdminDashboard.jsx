@@ -30,19 +30,29 @@ const STATUS_COLORS = {
   REJECTED: "text-red-400",
 };
 
-function Searchable({ placeholder, items, value, onChange, renderItem, renderSelected, disabled }) {
+function Searchable({
+  placeholder,
+  items,
+  value,
+  onChange,
+  renderItem,
+  renderSelected,
+  disabled,
+}) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const ref = useRef(null);
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const filtered = items.filter((item) =>
-    JSON.stringify(item).toLowerCase().includes(query.toLowerCase())
+    JSON.stringify(item).toLowerCase().includes(query.toLowerCase()),
   );
 
   return (
@@ -50,15 +60,23 @@ function Searchable({ placeholder, items, value, onChange, renderItem, renderSel
       <button
         type="button"
         disabled={disabled}
-        onClick={() => { setOpen((v) => !v); setQuery(""); }}
+        onClick={() => {
+          setOpen((v) => !v);
+          setQuery("");
+        }}
         className="w-full flex items-center justify-between gap-2 p-3 bg-purple-900 border border-blue-400 rounded-md text-left disabled:opacity-50"
       >
         <span className={value ? "text-white" : "text-gray-400"}>
           {value ? renderSelected(value) : placeholder}
         </span>
         {value ? (
-          <X className="w-4 h-4 text-gray-400 hover:text-white flex-shrink-0"
-            onClick={(e) => { e.stopPropagation(); onChange(null); }} />
+          <X
+            className="w-4 h-4 text-gray-400 hover:text-white flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange(null);
+            }}
+          />
         ) : (
           <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
         )}
@@ -85,7 +103,10 @@ function Searchable({ placeholder, items, value, onChange, renderItem, renderSel
               filtered.map((item) => (
                 <li
                   key={item._id}
-                  onClick={() => { onChange(item); setOpen(false); }}
+                  onClick={() => {
+                    onChange(item);
+                    setOpen(false);
+                  }}
                   className="px-4 py-2.5 text-sm cursor-pointer hover:bg-purple-800 transition-colors"
                 >
                   {renderItem(item)}
@@ -101,7 +122,10 @@ function Searchable({ placeholder, items, value, onChange, renderItem, renderSel
 
 export default function AdminPanel() {
   const token = getTokenFromCookies();
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
 
   const [clubs, setClubs] = useState([]);
   const [users, setUsers] = useState([]);
@@ -123,12 +147,21 @@ export default function AdminPanel() {
   };
 
   useEffect(() => {
-    fetch(`${API}/clubs`, { headers }).then((r) => r.json()).then(setClubs).catch(() => {});
-    fetch(`${API}/users`, { headers }).then((r) => r.json()).then(setUsers).catch(() => {});
+    fetch(`${API}/clubs`, { headers })
+      .then((r) => r.json())
+      .then(setClubs)
+      .catch(() => {});
+    fetch(`${API}/users`, { headers })
+      .then((r) => r.json())
+      .then(setUsers)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!selectedClub) { setMembers([]); return; }
+    if (!selectedClub) {
+      setMembers([]);
+      return;
+    }
     fetch(`${API}/clubs/${selectedClub._id}/members`, { headers })
       .then((r) => r.json())
       .then(setMembers)
@@ -147,7 +180,9 @@ export default function AdminPanel() {
       });
       const data = await res.json();
       if (res.ok) {
-        setClubs((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+        setClubs((prev) =>
+          [...prev, data].sort((a, b) => a.name.localeCompare(b.name)),
+        );
         setClubName("");
         showToast(`Club "${data.name}" created`);
       } else {
@@ -172,9 +207,14 @@ export default function AdminPanel() {
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(`${selectedUser.name} assigned as ${role.replace("_", " ")} in ${selectedClub.name}`);
+        showToast(
+          `${selectedUser.name} assigned as ${role.replace("_", " ")} in ${selectedClub.name}`,
+        );
         setSelectedUser(null);
-        const refreshed = await fetch(`${API}/clubs/${selectedClub._id}/members`, { headers }).then((r) => r.json());
+        const refreshed = await fetch(
+          `${API}/clubs/${selectedClub._id}/members`,
+          { headers },
+        ).then((r) => r.json());
         setMembers(refreshed);
       } else {
         showToast(data.message || "Failed to assign", "error");
@@ -202,7 +242,9 @@ export default function AdminPanel() {
   return (
     <div className="flex flex-col gap-8">
       <div className="p-6 bg-purple-950 border border-blue-400 rounded-xl">
-        <h2 className="font-pixel text-lg uppercase mb-4 text-blue-400">Create Club</h2>
+        <h2 className="font-pixel text-lg uppercase mb-4 text-blue-400">
+          Create Club
+        </h2>
         <form onSubmit={createClub} className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
@@ -217,7 +259,9 @@ export default function AdminPanel() {
             className="p-3 bg-purple-900 border border-blue-400 rounded-md text-white"
           >
             {POLICY_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
           <button
@@ -232,7 +276,9 @@ export default function AdminPanel() {
       </div>
 
       <div className="p-6 bg-purple-950 border border-blue-400 rounded-xl">
-        <h2 className="font-pixel text-lg uppercase mb-4 text-blue-400">Assign Role</h2>
+        <h2 className="font-pixel text-lg uppercase mb-4 text-blue-400">
+          Assign Role
+        </h2>
         <form onSubmit={assignMember} className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <Searchable
@@ -268,7 +314,9 @@ export default function AdminPanel() {
               className="p-3 bg-purple-900 border border-blue-400 rounded-md text-white sm:w-44"
             >
               {ROLE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>
@@ -292,21 +340,30 @@ export default function AdminPanel() {
           ) : (
             <ul className="space-y-2">
               {members.map((m) => (
-                <li key={m._id} className="flex items-center justify-between p-3 bg-purple-900 rounded-lg border border-blue-400/20">
+                <li
+                  key={m._id}
+                  className="flex items-center justify-between p-3 bg-purple-900 rounded-lg border border-blue-400/20"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-purple-700 flex items-center justify-center text-sm font-bold text-white">
                       {m.userId?.name?.[0]?.toUpperCase() || "?"}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white">{m.userId?.name}</p>
+                      <p className="text-sm font-medium text-white">
+                        {m.userId?.name}
+                      </p>
                       <p className="text-xs text-gray-400">{m.userId?.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${ROLE_COLORS[m.role] || "bg-gray-500/20 text-gray-300"}`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${ROLE_COLORS[m.role] || "bg-gray-500/20 text-gray-300"}`}
+                    >
                       {m.role?.replace("_", " ")}
                     </span>
-                    <span className={`text-xs font-medium ${STATUS_COLORS[m.status] || "text-gray-400"}`}>
+                    <span
+                      className={`text-xs font-medium ${STATUS_COLORS[m.status] || "text-gray-400"}`}
+                    >
                       {m.status}
                     </span>
                     <button
@@ -325,9 +382,11 @@ export default function AdminPanel() {
       )}
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${
-          toast.type === "error" ? "bg-red-500" : "bg-green-600"
-        }`}>
+        <div
+          className={`fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${
+            toast.type === "error" ? "bg-red-500" : "bg-green-600"
+          }`}
+        >
           {toast.message}
         </div>
       )}
