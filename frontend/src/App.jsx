@@ -12,7 +12,8 @@ import RegisteredEvents from "./Pages/RegisteredEvents.jsx";
 import ClubMemberDashboard from "./Pages/ClubMemberDashboard.jsx";
 import ScanAttendance from "./Pages/ScanAttendance";
 import AssignAdmins from "./Pages/AssignAdmins";
-import AttendanceAnalytics from "./pages/AttendanceAnalytics";
+import AttendanceAnalytics from "./Pages/AttendanceAnalytics";
+import ModerationDashboard from "./Pages/ModerationDashboard";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
       <Route path="/scan" element={<ScanAttendance />} />
       <Route path="/assign-admins" element={<AssignAdmins />} />
       <Route path="/attendance-analytics" element={<AttendanceAnalytics />} />
+      <Route path="/moderation" element={<ModerationDashboard />} />
 
       <Route
         path="/club-admin/:clubId/requests"

@@ -39,7 +39,7 @@ exports.getClubPosts = async (req, res) => {
   try {
     const { clubId } = req.params;
 
-    const posts = await ClubPost.find({ clubId })
+    const posts = await ClubPost.find({ clubId, status: "visible" })
       .populate("authorId", "name")
       .sort({ createdAt: -1 });
 
