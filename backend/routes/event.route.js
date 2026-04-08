@@ -29,6 +29,7 @@ router.post(
   verifyToken,
   eventController.registerForEvent,
 );
+router.put("/:eventId", verifyToken, eventController.updateEvent);
 router.get(
   "/registrations",
   verifyToken,

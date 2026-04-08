@@ -12,6 +12,7 @@ const clubRoutes = require("./routes/club.route");
 const documentRoutes = require("./routes/document.route");
 const attendanceRoutes = require("./routes/attendance.route");
 const reportRoutes = require("./routes/report.route");
+const userRoutes = require("./routes/user.route");
 const scanRoutes = require("./routes/scan");
 const path = require("path");
 const dns = require("dns");
@@ -30,7 +31,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://c6fb-2400-1a00-3b2c-305a-4403-489e-12f8.ngrok-free.app",
+      "https://b0ff-2400-1a00-3b23-66e0-1915-7bd9-3231-4f7.ngrok-free.app",
     ],
   }),
 );
@@ -45,6 +46,7 @@ app.use("/api/clubs", clubRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/user", userRoutes);
 app.use("/", scanRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);

@@ -2,7 +2,6 @@ const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const catchAsync = require("../utils/catchAsync");
-const { getOAuth2Client } = require("../utils/getOAuth2Client");
 
 const register = async (req, res) => {
   try {
@@ -49,17 +48,17 @@ const login = async (req, res) => {
 };
 
 const googleAuth = catchAsync(async (req, res, next) => {
-  const code = req.query.code;
-  const oauth2Client = getOAuth2Client();
-  const googleRes = await oauth2Client.getToken(code);
+  const { credential } = req.body;
+  if (!credential) return res.status(400).json({ message: "Missing credential" });
 
-  oauth2Client.setCredentials(googleRes.tokens);
-  const userRes = await fetch(
-    `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`,
-    { method: "GET" }
+  const tokenInfoRes = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`
   );
+  const userData = await tokenInfoRes.json();
 
-  const userData = await userRes.json();
+  if (!tokenInfoRes.ok || userData.error) {
+    return res.status(401).json({ message: "Invalid Google token" });
+  }
 
   let user = await User.findOne({ email: userData.email });
 
@@ -73,7 +72,7 @@ const googleAuth = catchAsync(async (req, res, next) => {
   }
 
   const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
+    expiresIn: "7d",
   });
 
   res.json({ token, email: user.email, name: user.name, role: user.role });

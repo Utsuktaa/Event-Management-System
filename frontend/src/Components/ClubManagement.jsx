@@ -435,13 +435,15 @@ export default function ClubManagement({
               <p className="text-sm" style={{ color: "#9CA3AF" }}>
                 Loading...
               </p>
-            ) : events.length === 0 ? (
+            ) : events.filter((e) => new Date(e.date) >= new Date()).length === 0 ? (
               <p className="text-sm" style={{ color: "#9CA3AF" }}>
-                No events yet.
+                No upcoming events.
               </p>
             ) : (
               <ul className="space-y-3">
-                {events.map((event) => (
+                {events
+                  .filter((e) => new Date(e.date) >= new Date())
+                  .map((event) => (
                   <li
                     key={event._id}
                     className="p-4 rounded-xl"
@@ -513,6 +515,58 @@ export default function ClubManagement({
                 ))}
               </ul>
             )}
+
+            {(() => {
+              const now = new Date();
+              const cutoff = new Date();
+              cutoff.setDate(cutoff.getDate() - 30);
+              const past = events.filter(
+                (e) => new Date(e.date) < now && new Date(e.date) >= cutoff
+              );
+              if (past.length === 0) return null;
+              return (
+                <div className="mt-6">
+                  <h3
+                    className="font-semibold text-sm mb-3"
+                    style={{ color: "#6B7280" }}
+                  >
+                    Recent Past Events
+                  </h3>
+                  <ul className="space-y-3">
+                    {past.map((event) => (
+                      <li
+                        key={event._id}
+                        className="p-4 rounded-xl"
+                        style={{
+                          background: "rgba(107,114,128,0.05)",
+                          border: "1px solid rgba(107,114,128,0.15)",
+                        }}
+                      >
+                        <h3
+                          className="font-medium text-sm"
+                          style={{ color: "#6B7280" }}
+                        >
+                          {event.title}
+                        </h3>
+                        <div
+                          className="flex gap-3 mt-1 text-xs"
+                          style={{ color: "#9CA3AF" }}
+                        >
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(event.date).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {event.location}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

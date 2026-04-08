@@ -1,8 +1,8 @@
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LoginWithGoogle from "../Components/LoginWithGoogle";
+import GoogleAuth from "../Components/GoogleAuth";
 import Logo from "../Components/Logo";
+import { API_BASE } from "../config";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -13,24 +13,29 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       const data = await response.json();
       if (response.ok) {
-        document.cookie = `email=${data.email}; path=/; max-age=${7 * 24 * 60 * 60}`;
-        document.cookie = `name=${data.name}; path=/; max-age=${7 * 24 * 60 * 60}`;
-        document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
-        document.cookie = `role=${data.role}; path=/; max-age=${7 * 24 * 60 * 60}`;
+        document.cookie = `email=${data.email}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `name=${data.name}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `role=${data.role}; path=/; max-age=604800; SameSite=Lax`;
         if (data.role === "admin" || data.role === "superadmin") {
           window.location.href = "/admin-dashboard";
         } else {
           window.location.href = "/user-dashboard";
         }
-      } else alert(data.message);
-    } catch {}
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Login failed");
+    }
   };
 
   return (
@@ -110,9 +115,7 @@ const Login = () => {
           <div className="flex-1 h-px" style={{ background: "rgba(124,58,237,0.15)" }} />
         </div>
 
-        <GoogleOAuthProvider clientId="931347685047-es5og9c0land051gpbm4qqc3cfnq576r.apps.googleusercontent.com">
-          <LoginWithGoogle />
-        </GoogleOAuthProvider>
+        <GoogleAuth />
 
         <p className="text-center text-sm mt-5" style={{ color: "#6B7280" }}>
           No account?{" "}

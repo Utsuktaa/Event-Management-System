@@ -9,6 +9,6 @@ const router = require("express").Router();
 router
   .post("/register", register)
   .post("/login", login)
-  .get("/google", googleAuth);
+  .post("/google", googleAuth);
 
 module.exports = router;

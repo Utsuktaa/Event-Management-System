@@ -13,6 +13,7 @@ import ScanAttendance from "./Pages/ScanAttendance";
 import AssignAdmins from "./Pages/AssignAdmins";
 import AttendanceAnalytics from "./Pages/AttendanceAnalytics";
 import ModerationDashboard from "./Pages/ModerationDashboard";
+import ActivityPage from "./Pages/ActivityPage";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
       <Route path="/attendance-analytics" element={<AttendanceAnalytics />} />
       <Route path="/moderation" element={<ModerationDashboard />} />
       <Route path="/my-events" element={<RegisteredEvents />} />
+      <Route path="/activity" element={<ActivityPage />} />
     </Routes>
   );
 }
