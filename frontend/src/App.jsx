@@ -14,6 +14,8 @@ import AssignAdmins from "./Pages/AssignAdmins";
 import AttendanceAnalytics from "./Pages/AttendanceAnalytics";
 import ModerationDashboard from "./Pages/ModerationDashboard";
 import ActivityPage from "./Pages/ActivityPage";
+import AttendancePage from "./Pages/AttendancePage";
+import LeaderboardPage from "./Pages/LeaderboardPage";
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
       <Route path="/moderation" element={<ModerationDashboard />} />
       <Route path="/my-events" element={<RegisteredEvents />} />
       <Route path="/activity" element={<ActivityPage />} />
+      <Route path="/attendance" element={<AttendancePage />} />
+      <Route path="/leaderboard" element={<LeaderboardPage />} />
     </Routes>
   );
 }

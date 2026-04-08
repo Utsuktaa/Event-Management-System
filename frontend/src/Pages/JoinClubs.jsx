@@ -5,6 +5,7 @@ import ClubInfo from "../Components/ClubInfo";
 import Toast from "../Components/Toast";
 import Logo from "../Components/Logo";
 import { getTokenFromCookies } from "../Utils/auth";
+import { API_BASE } from "../config";
 
 const STATUS_CONFIG = {
   ACTIVE: { label: "Member", color: "bg-green-500/15 text-green-700 border-green-500/25" },
@@ -41,7 +42,7 @@ export default function JoinClubs() {
   useEffect(() => {
     const token = getTokenFromCookies();
     if (!token) { setLoading(false); return; }
-    fetch("http://localhost:5000/api/clubs", { headers: { Authorization: "Bearer " + token } })
+    fetch(`${API_BASE}/api/clubs`, { headers: { Authorization: "Bearer " + token } })
       .then((r) => r.json())
       .then((d) => setClubs(Array.isArray(d) ? d : []))
       .catch(console.error)

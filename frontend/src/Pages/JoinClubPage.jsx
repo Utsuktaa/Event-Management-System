@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { API_BASE } from "../config";
 
 export default function JoinClubPage() {
   const { clubId } = useParams();
@@ -17,7 +18,7 @@ export default function JoinClubPage() {
         .find((row) => row.startsWith("token="))
         ?.split("=")[1];
 
-      const res = await fetch(`http://localhost:5000/api/clubs/${clubId}/join`, {
+      const res = await fetch(`${API_BASE}/api/clubs/${clubId}/join`, {
         method: "POST",
         headers: { Authorization: "Bearer " + token },
       });
