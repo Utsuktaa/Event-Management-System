@@ -1,105 +1,319 @@
 import { useNavigate } from "react-router-dom";
-import { clearAuthCookies } from "../Utils/auth";
-import { Shield, BarChart2, Flag, FileText, LogOut } from "lucide-react";
-import Logo from "../Components/Logo";
+import { useState, useEffect } from "react";
+import {
+  Shield,
+  BarChart2,
+  Flag,
+  FileText,
+  AlertTriangle,
+  ChevronRight,
+} from "lucide-react";
+import Sidebar from "../Components/Sidebar";
+import { getTokenFromCookies } from "../Utils/auth";
+import { API_BASE } from "../config";
 
-const CARDS = [
-  { icon: Shield, title: "Assign Club Admins", desc: "Manage club administrators", route: "/assign-admins", gradient: "linear-gradient(135deg,#1E3A8A,#4f46e5)", glow: "rgba(30,58,138,0.25)" },
-  { icon: BarChart2, title: "Attendance", desc: "View system attendance analytics", route: "/attendance-analytics", gradient: "linear-gradient(135deg,#7c3aed,#4f46e5)", glow: "rgba(124,58,237,0.25)" },
-  { icon: Flag, title: "Moderation", desc: "Review reported posts and comments", route: "/moderation", gradient: "linear-gradient(135deg,#7c3aed,#a855f7)", glow: "rgba(168,85,247,0.25)" },
-  { icon: FileText, title: "Reports", desc: "Generate system reports", route: "/reports", gradient: "linear-gradient(135deg,#4f46e5,#0ea5e9)", glow: "rgba(79,70,229,0.25)" },
+const NAV_CARDS = [
+  {
+    icon: Shield,
+    title: "Assign Club Admins",
+    desc: "Manage club administrators",
+    route: "/assign-admins",
+  },
+  {
+    icon: BarChart2,
+    title: "Attendance",
+    desc: "View system attendance analytics",
+    route: "/attendance-analytics",
+  },
+  {
+    icon: Flag,
+    title: "Moderation",
+    desc: "Review reported posts and comments",
+    route: "/moderation",
+  },
+  {
+    icon: FileText,
+    title: "Reports",
+    desc: "Generate system reports",
+    route: "/reports",
+  },
 ];
+
+const FLAG_LABEL = {
+  spam: "Spam",
+  harassment: "Harassment",
+  scam: "Scam",
+  other: "Other",
+};
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const token = getTokenFromCookies();
+  const headers = { Authorization: `Bearer ${token}` };
 
-  const handleLogout = () => {
-    clearAuthCookies();
-    window.location.href = "/";
-  };
+  const [stats, setStats] = useState(null);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!token) return;
+
+    Promise.all([
+      fetch(`${API_BASE}/api/admin/clubs`, { headers }).then((r) => r.json()),
+      fetch(`${API_BASE}/api/events/school-events`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/events/analytics/overview`, { headers }).then(
+        (r) => r.json(),
+      ),
+      fetch(`${API_BASE}/api/reports/admin/posts?limit=3`, { headers }).then(
+        (r) => r.json(),
+      ),
+    ])
+      .then(([clubs, events, analytics, reportData]) => {
+        setStats({
+          totalClubs: Array.isArray(clubs) ? clubs.length : 0,
+          totalEvents: Array.isArray(events)
+            ? events.length
+            : analytics.totalEvents || 0,
+          attendanceRate: analytics.overallAttendanceRate ?? null,
+          pendingReports: reportData.total ?? 0,
+        });
+        setReports(reportData.posts?.slice(0, 3) || []);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const statCards = stats
+    ? [
+        { label: "Total Clubs", value: stats.totalClubs },
+        { label: "Total Events", value: stats.totalEvents },
+        {
+          label: "Attendance Rate",
+          value:
+            stats.attendanceRate !== null ? `${stats.attendanceRate}%` : "—",
+        },
+        {
+          label: "Pending Reports",
+          value: stats.pendingReports,
+          alert: stats.pendingReports > 0,
+        },
+      ]
+    : [];
 
   return (
     <div
-      className="min-h-screen font-sans relative overflow-x-hidden"
-      style={{ background: "linear-gradient(135deg, #ede9fe 0%, #f5f3ff 40%, #e0e7ff 100%)" }}
+      className="min-h-screen font-sans flex"
+      style={{
+        background:
+          "linear-gradient(135deg, #ede9fe 0%, #f5f3ff 40%, #e0e7ff 100%)",
+      }}
     >
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl"
-          style={{ background: "radial-gradient(circle, #c4b5fd, transparent 70%)" }} />
-        <div className="absolute top-1/2 -right-40 w-[400px] h-[400px] rounded-full opacity-20 blur-3xl"
-          style={{ background: "radial-gradient(circle, #a5b4fc, transparent 70%)" }} />
-      </div>
+      <Sidebar role="admin" />
 
-      <nav
-        className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between"
-        style={{
-          background: "rgba(255,255,255,0.75)",
-          backdropFilter: "blur(16px)",
-          boxShadow: "0 1px 24px rgba(124,58,237,0.10)",
-          borderBottom: "1px solid rgba(124,58,237,0.12)",
-        }}
-      >
-        <Logo />
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition hover:opacity-90 hover:scale-105"
-          style={{ background: "linear-gradient(135deg,#1E3A8A,#7C3AED)", color: "white" }}
+      <div className="flex-1 flex flex-col ml-56">
+        <header
+          className="px-8 py-4 border-b"
+          style={{
+            background: "rgba(255,255,255,0.92)",
+            borderColor: "rgba(124,58,237,0.10)",
+          }}
         >
-          <LogOut className="w-4 h-4" />
-          <span className="hidden sm:inline">Logout</span>
-        </button>
-      </nav>
+          <h1 className="text-lg font-semibold" style={{ color: "#1E3A8A" }}>
+            Overview
+          </h1>
+        </header>
 
-      <main className="relative z-10 max-w-4xl mx-auto px-6 py-14">
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-1 h-8 rounded-full" style={{ background: "linear-gradient(180deg,#7C3AED,#4f46e5)" }} />
-            <h1 className="text-3xl font-bold" style={{ color: "#1E3A8A" }}>Admin Panel</h1>
-          </div>
-          
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {CARDS.map(({ icon: Icon, title, desc, route, gradient, glow }) => (
-            <div
-              key={title}
-              onClick={() => navigate(route)}
-              className="relative rounded-2xl p-6 cursor-pointer transition-all duration-200 overflow-hidden group"
-              style={{
-                background: "rgba(255,255,255,0.75)",
-                border: "1px solid rgba(124,58,237,0.12)",
-                boxShadow: "0 2px 16px rgba(124,58,237,0.07)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-3px)";
-                e.currentTarget.style.boxShadow = `0 12px 32px ${glow}`;
-                e.currentTarget.style.borderColor = "rgba(124,58,237,0.25)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = "0 2px 16px rgba(124,58,237,0.07)";
-                e.currentTarget.style.borderColor = "rgba(124,58,237,0.12)";
-              }}
-            >
-              <div className="absolute -bottom-6 -right-6 w-20 h-20 rounded-full blur-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: glow }} />
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
-                style={{ background: gradient, boxShadow: `0 4px 14px ${glow}` }}
-              >
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-semibold text-base mb-1" style={{ color: "#1E3A8A" }}>{title}</h3>
-              <p className="text-sm" style={{ color: "#6B7280" }}>{desc}</p>
+        <main className="flex-1 px-8 py-8">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {loading
+                ? [1, 2, 3, 4].map((n) => (
+                    <div
+                      key={n}
+                      className="h-24 rounded-xl animate-pulse bg-white border border-purple-100"
+                    />
+                  ))
+                : statCards.map(({ label, value, alert }) => (
+                    <div
+                      key={label}
+                      className="bg-white rounded-xl border p-5 flex flex-col gap-1.5"
+                      style={{
+                        borderColor: alert
+                          ? "rgba(220,38,38,0.2)"
+                          : "rgba(124,58,237,0.10)",
+                      }}
+                    >
+                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                        {label}
+                      </span>
+                      <span
+                        className="text-2xl font-bold"
+                        style={{ color: alert ? "#DC2626" : "#1E3A8A" }}
+                      >
+                        {value}
+                      </span>
+                    </div>
+                  ))}
             </div>
-          ))}
-        </div>
-      </main>
 
-      <footer className="relative z-10 py-8 text-center text-xs border-t"
-        style={{ color: "rgba(107,114,128,0.6)", borderColor: "rgba(124,58,237,0.10)" }}>
-        © 2025 EventSync
-      </footer>
+            {!loading && stats?.pendingReports > 0 && (
+              <div className="bg-white rounded-xl border border-red-100 overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b border-red-50">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                    <span className="text-sm font-semibold text-red-600">
+                      {stats.pendingReports} pending report
+                      {stats.pendingReports > 1 ? "s" : ""} need attention
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => navigate("/moderation")}
+                    className="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    Review all
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {reports.length > 0 && (
+                  <ul className="divide-y divide-gray-50">
+                    {reports.map((post) => (
+                      <li
+                        key={post._id}
+                        onClick={() => navigate("/moderation")}
+                        className="flex items-start justify-between gap-4 px-5 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">
+                            {post.title ||
+                              post.description?.slice(0, 60) ||
+                              "Untitled post"}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {post.authorId?.name || "Unknown"} ·{" "}
+                            {post.clubId?.name || ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {(post.flags || []).slice(0, 2).map((f) => (
+                            <span
+                              key={f}
+                              className="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100"
+                            >
+                              {FLAG_LABEL[f] || f}
+                            </span>
+                          ))}
+                          <span className="text-xs text-gray-400">
+                            {post.reportCount}×
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {!loading && stats?.pendingReports === 0 && (
+              <div className="bg-white rounded-xl border border-purple-100 px-5 py-4 flex items-center gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(5,150,105,0.08)" }}
+                >
+                  <Flag className="w-4 h-4 text-green-600" />
+                </div>
+                <p className="text-sm text-gray-600">
+                  No pending reports — moderation queue is clear.
+                </p>
+              </div>
+            )}
+
+            {!loading && stats && (
+              <div className="bg-white rounded-xl border border-purple-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-gray-700">
+                    Attendance summary
+                  </span>
+                  <button
+                    onClick={() => navigate("/attendance-analytics")}
+                    className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-800 transition-colors"
+                  >
+                    View full analytics
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-end justify-between mb-1.5">
+                      <span className="text-xs text-gray-400">
+                        Overall rate
+                      </span>
+                      <span
+                        className="text-sm font-bold"
+                        style={{ color: "#7C3AED" }}
+                      >
+                        {stats.attendanceRate !== null
+                          ? `${stats.attendanceRate}%`
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-purple-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-purple-500 rounded-full transition-all duration-700"
+                        style={{ width: `${stats.attendanceRate ?? 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Quick Access
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {NAV_CARDS.map(({ icon: Icon, title, desc, route }) => (
+                  <div
+                    key={title}
+                    onClick={() => navigate(route)}
+                    className="flex items-start gap-4 rounded-xl p-5 cursor-pointer transition-all duration-200 bg-white border hover:border-purple-300 hover:shadow-md"
+                    style={{ border: "1px solid rgba(124,58,237,0.12)" }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: "rgba(124,58,237,0.10)" }}
+                    >
+                      <Icon className="w-5 h-5" style={{ color: "#7C3AED" }} />
+                    </div>
+                    <div>
+                      <h3
+                        className="font-semibold text-sm mb-0.5"
+                        style={{ color: "#1E3A8A" }}
+                      >
+                        {title}
+                      </h3>
+                      <p className="text-sm" style={{ color: "#6B7280" }}>
+                        {desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer
+          className="py-6 text-center text-xs border-t"
+          style={{
+            color: "rgba(107,114,128,0.6)",
+            borderColor: "rgba(124,58,237,0.10)",
+          }}
+        >
+          © 2025 EventSync
+        </footer>
+      </div>
     </div>
   );
 }

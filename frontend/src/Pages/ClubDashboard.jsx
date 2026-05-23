@@ -7,7 +7,7 @@ import Events from "../Components/Events";
 import Polls from "../Components/Polls";
 import Documents from "../Components/Documents";
 import ClubManagement from "../Components/ClubManagement";
-import Logo from "../Components/Logo";
+import Sidebar from "../Components/Sidebar";
 import { ArrowLeft } from "lucide-react";
 import { API_BASE } from "../config";
 
@@ -64,76 +64,77 @@ export default function ClubDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#f5f3ff" }}>
         <div className="w-8 h-8 rounded-full border-2 border-purple-600 border-t-transparent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen font-sans relative overflow-x-hidden bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-25 blur-3xl bg-violet-300" />
-        <div className="absolute top-1/2 -right-40 w-[400px] h-[400px] rounded-full opacity-15 blur-3xl bg-indigo-300" />
-      </div>
+    <div className="min-h-screen font-sans flex" style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}>
+      <Sidebar role="user" />
 
-      <nav className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between bg-white/75 backdrop-blur-xl shadow-[0_1px_24px_rgba(124,58,237,0.10)] border-b border-purple-200/50">
-        <div className="flex items-center gap-4">
-          <Logo />
-          <div className="hidden sm:block w-px h-5 bg-purple-200" />
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="font-semibold text-sm text-blue-900">{club?.name}</span>
-            {clubRole && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-purple-100 text-purple-700">
-                {clubRole.replace("_", " ")}
-              </span>
-            )}
-          </div>
-        </div>
-        <button
-          onClick={() => navigate("/join-clubs")}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium text-gray-500 transition hover:bg-purple-50"
+      <div className="flex-1 flex flex-col ml-56">
+        <nav
+          className="sticky top-0 z-40 px-6 py-3 flex items-center justify-between"
+          style={{
+            background: "rgba(255,255,255,0.95)",
+            backdropFilter: "blur(12px)",
+            borderBottom: "1px solid rgba(124,58,237,0.10)",
+          }}
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Clubs</span>
-        </button>
-      </nav>
-
-      <div className="relative z-10 pt-6 pb-2 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="sm:hidden mb-4 flex items-center gap-2">
-            <span className="font-semibold text-blue-900">{club?.name}</span>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-sm" style={{ color: "#1E3A8A" }}>{club?.name}</span>
             {clubRole && (
               <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize bg-purple-100 text-purple-700">
                 {clubRole.replace("_", " ")}
               </span>
             )}
           </div>
-          <div className="inline-flex rounded-2xl p-1 gap-1 flex-wrap bg-purple-700/90 border border-purple-600 shadow-sm">
+          <button
+            onClick={() => navigate("/join-clubs")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 transition hover:bg-purple-50"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">All Clubs</span>
+          </button>
+        </nav>
+
+        <div
+          className="sticky z-30 px-6 border-b"
+          style={{
+            top: "53px",
+            background: "rgba(255,255,255,0.95)",
+            backdropFilter: "blur(12px)",
+            borderColor: "rgba(124,58,237,0.10)",
+          }}
+        >
+          <div className="flex gap-0 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className="px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2"
+                style={
                   activeTab === tab
-                    ? "bg-white text-purple-700 shadow-sm"
-                    : "text-purple-100 hover:text-white"
-                }`}
+                    ? { color: "#7C3AED", borderColor: "#7C3AED" }
+                    : { color: "#6B7280", borderColor: "transparent" }
+                }
               >
                 {tab}
               </button>
             ))}
           </div>
         </div>
-      </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 pb-16 pt-4">
-        {renderTab()}
-      </div>
+        <div className="flex-1 max-w-5xl w-full mx-auto px-6 py-8 pb-16">
+          {renderTab()}
+        </div>
 
-      <footer className="relative z-10 py-8 text-center text-xs border-t border-purple-200/50 text-gray-400">
-        © 2025 EventSync
-      </footer>
+        <footer className="py-6 text-center text-xs border-t" style={{ color: "rgba(107,114,128,0.6)", borderColor: "rgba(124,58,237,0.08)" }}>
+          © 2025 EventSync
+        </footer>
+      </div>
     </div>
   );
 }
@@ -173,14 +174,14 @@ function MembersList({ clubId, token, canAssignRoles }) {
     return <div className="py-10 text-center text-sm text-gray-400">Loading members...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-3 mt-4">
+    <div className="max-w-2xl mx-auto space-y-2 mt-2">
       {members.length === 0 ? (
         <p className="text-center py-10 text-sm text-gray-400">No active members.</p>
       ) : (
         members.map((m) => (
           <div
             key={m._id}
-            className="flex items-center justify-between p-4 rounded-2xl bg-white/75 border border-purple-200/50 shadow-sm"
+            className="flex items-center justify-between p-4 rounded-xl bg-white border border-purple-100"
           >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-purple-600 to-indigo-500">

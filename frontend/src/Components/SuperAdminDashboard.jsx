@@ -189,11 +189,10 @@ export default function AdminPanel() {
   return (
     <div className="space-y-6">
 
-      <div className="bg-white/80 rounded-3xl p-8 border border-purple-200 shadow-sm relative overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full opacity-30 pointer-events-none" />
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-md">
-            <Plus className="w-4 h-4 text-white" />
+      <div className="bg-white rounded-xl p-6 border border-purple-100">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,237,0.10)" }}>
+            <Plus className="w-4 h-4 text-purple-600" />
           </div>
           <h2 className="font-semibold text-base text-blue-900">Create Club</h2>
         </div>
@@ -211,7 +210,7 @@ export default function AdminPanel() {
           <button
             type="submit"
             disabled={submitting || !clubName.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-purple-700 text-white text-sm font-semibold rounded-xl hover:bg-purple-800 transition disabled:opacity-50 shadow-md"
+            className="flex items-center gap-2 px-5 py-2.5 bg-purple-700 text-white text-sm font-semibold rounded-lg hover:bg-purple-800 transition disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             Create
@@ -219,11 +218,10 @@ export default function AdminPanel() {
         </form>
       </div>
 
-      <div className="bg-white/80 rounded-3xl p-8 border border-purple-200 shadow-sm relative">
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full opacity-30 pointer-events-none" />
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-md">
-            <Shield className="w-4 h-4 text-white" />
+      <div className="bg-white rounded-xl p-6 border border-purple-100">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,237,0.10)" }}>
+            <Shield className="w-4 h-4 text-purple-600" />
           </div>
           <h2 className="font-semibold text-base text-blue-900">Assign Role</h2>
         </div>
@@ -263,7 +261,7 @@ export default function AdminPanel() {
           <button
             type="submit"
             disabled={submitting || !selectedClub || !selectedUser}
-            className="self-start px-6 py-2.5 bg-purple-700 text-white text-sm font-semibold rounded-xl hover:bg-purple-800 transition disabled:opacity-40 shadow-md"
+            className="self-start px-6 py-2.5 bg-purple-700 text-white text-sm font-semibold rounded-lg hover:bg-purple-800 transition disabled:opacity-40"
           >
             {submitting ? "Assigning..." : "Assign Role"}
           </button>
@@ -271,11 +269,10 @@ export default function AdminPanel() {
       </div>
 
       {selectedClub && (
-        <div className="bg-white/80 rounded-3xl p-8 border border-purple-200 shadow-sm relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full opacity-30 pointer-events-none" />
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-md">
-              <Users className="w-4 h-4 text-white" />
+        <div className="bg-white rounded-xl p-6 border border-purple-100">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,237,0.10)" }}>
+              <Users className="w-4 h-4 text-purple-600" />
             </div>
             <h2 className="font-semibold text-base text-blue-900">{selectedClub.name} — Members</h2>
           </div>

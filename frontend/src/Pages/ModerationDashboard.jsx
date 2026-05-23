@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { API_BASE } from "../config";
 import { getTokenFromCookies } from "../Utils/auth";
-import Logo from "../Components/Logo";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../Components/Sidebar";
 
 const FLAG_COLORS = {
   spam: { bg: "rgba(234,179,8,0.12)", color: "#854d0e" },
@@ -140,58 +140,26 @@ export default function ModerationDashboard() {
 
   return (
     <div
-      className="min-h-screen font-sans relative overflow-x-hidden"
-      style={{
-        background:
-          "linear-gradient(135deg,#ede9fe 0%,#f5f3ff 40%,#e0e7ff 100%)",
-      }}
+      className="min-h-screen font-sans flex"
+      style={{ background: "linear-gradient(135deg,#ede9fe 0%,#f5f3ff 40%,#e0e7ff 100%)" }}
     >
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div
-          className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-25 blur-3xl"
-          style={{
-            background: "radial-gradient(circle,#c4b5fd,transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full opacity-20 blur-3xl"
-          style={{
-            background: "radial-gradient(circle,#a5b4fc,transparent 70%)",
-          }}
-        />
-      </div>
+      <Sidebar role="admin" />
 
-      <nav
-        className="sticky top-0 z-40 px-6 py-4 flex items-center justify-between"
-        style={{
-          background: "rgba(255,255,255,0.75)",
-          backdropFilter: "blur(16px)",
-          boxShadow: "0 1px 24px rgba(124,58,237,0.10)",
-          borderBottom: "1px solid rgba(124,58,237,0.12)",
-        }}
-      >
-        <Logo />
-        <button
-          onClick={() => navigate("/admin-dashboard")}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition hover:bg-purple-50"
-          style={{ color: "#6B7280" }}
+      <div className="flex-1 flex flex-col ml-56">
+        <header
+          className="px-8 py-4 flex items-center gap-3 border-b"
+          style={{ background: "rgba(255,255,255,0.92)", borderColor: "rgba(124,58,237,0.10)" }}
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back</span>
-        </button>
-      </nav>
+          <button
+            onClick={() => navigate("/admin-dashboard")}
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-purple-600"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <h1 className="text-lg font-semibold" style={{ color: "#1E3A8A" }}>Content Moderation</h1>
+        </header>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-12">
-        <div className="flex items-center gap-3 mb-8">
-          <div
-            className="w-1 h-8 rounded-full"
-            style={{ background: "linear-gradient(180deg,#7C3AED,#4f46e5)" }}
-          />
-          <h1 className="text-3xl font-bold" style={{ color: "#1E3A8A" }}>
-            Content Moderation
-          </h1>
-        </div>
-
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
           <form
             onSubmit={(e) => {
@@ -431,7 +399,7 @@ export default function ModerationDashboard() {
       </main>
 
       <footer
-        className="relative z-10 py-8 text-center text-xs border-t"
+        className="py-6 text-center text-xs border-t"
         style={{
           color: "rgba(107,114,128,0.6)",
           borderColor: "rgba(124,58,237,0.10)",
@@ -447,6 +415,7 @@ export default function ModerationDashboard() {
           onCancel={() => setConfirm(null)}
         />
       )}
+      </div>
     </div>
   );
 }

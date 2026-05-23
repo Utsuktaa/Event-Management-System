@@ -13,10 +13,10 @@ export default function Dashboard() {
   const [registeredEvents, setRegisteredEvents] = useState([]);
 
   const cards = [
-    { icon: Calendar, title: "Attendance", desc: "Track your presence" },
-    { icon: Users, title: "Leaderboard", desc: "See your ranking" },
-    { icon: BarChart2, title: "Join Clubs", desc: "Unlock club events" },
-    { icon: Activity, title: "Activity Timeline", desc: "Your recent activity" },
+    { icon: Calendar,  title: "Attendance",        desc: "Track your presence" },
+    { icon: Users,     title: "Leaderboard",       desc: "See your ranking" },
+    { icon: BarChart2, title: "Join Clubs",         desc: "Unlock club events" },
+    { icon: Activity,  title: "Activity Timeline",  desc: "Your recent activity" },
   ];
 
   useEffect(() => {
@@ -51,9 +51,9 @@ export default function Dashboard() {
   }, []);
 
   const handleCardClick = (title) => {
-    if (title === "Attendance") navigate("/attendance");
-    if (title === "Leaderboard") navigate("/leaderboard");
-    if (title === "Join Clubs") navigate("/join-clubs");
+    if (title === "Attendance")        navigate("/attendance");
+    if (title === "Leaderboard")       navigate("/leaderboard");
+    if (title === "Join Clubs")        navigate("/join-clubs");
     if (title === "Activity Timeline") navigate("/activity");
   };
 
@@ -81,21 +81,20 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50/40 font-poppins text-gray-900">
-      <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-16">
+    <div className="font-sans text-gray-900">
+      <div className="max-w-[1100px] mx-auto px-6 py-10 space-y-10">
 
-        <section className="bg-white/80 rounded-3xl p-8 border border-purple-200 shadow-sm space-y-6 relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full opacity-30 pointer-events-none" />
-          <h1 className="text-3xl font-bold text-gray-900">Upcoming Events</h1>
+        <section>
+          <h2 className="text-xl font-bold mb-5" style={{ color: "#1E3A8A" }}>Upcoming Events</h2>
 
           {loadingEvents ? (
-            <p className="text-sm text-gray-500">Loading something exciting…</p>
+            <p className="text-sm text-gray-500">Loading events…</p>
           ) : events.length === 0 ? (
-            <div className="text-center py-16 space-y-3">
-              <p className="text-gray-600 text-sm">No upcoming events right now.</p>
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-sm">No upcoming events right now.</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {events.map((event) => {
                 const isExpanded = expandedEvent === event._id;
                 const isRegistered = registeredEvents.includes(event._id);
@@ -103,39 +102,43 @@ export default function Dashboard() {
                   <div
                     key={event._id}
                     onClick={() => toggleExpand(event._id)}
-                    className="relative bg-white rounded-3xl border border-purple-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-150 p-6 cursor-pointer overflow-hidden"
+                    className="bg-white rounded-xl border border-purple-100 hover:border-purple-300 hover:shadow-sm transition-all duration-150 p-5 cursor-pointer"
                   >
-                    <div className="absolute -top-6 -right-6 w-24 h-24 bg-purple-200 rounded-full opacity-40 pointer-events-none" />
-                    <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
-                    <div className="flex gap-6 text-sm text-gray-500 mt-2">
-                      <span className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                    <h3 className="text-base font-semibold text-gray-900">{event.title}</h3>
+                    <div className="flex gap-5 text-sm text-gray-500 mt-1.5">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-purple-400" />
                         {new Date(event.date).toLocaleDateString()}
                       </span>
-                      <span className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-purple-400" />
                         {event.location}
                       </span>
                     </div>
                     {isExpanded && (
                       <div className="mt-4 flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex-1 flex flex-col gap-3">
                           <p className="text-sm text-gray-600">{event.description}</p>
                           <button
                             disabled={isRegistered}
                             onClick={(e) => handleRegister(e, event._id, isRegistered)}
-                            className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-150 w-fit ${
+                            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 w-fit ${
                               isRegistered
                                 ? "bg-purple-100 text-purple-500 cursor-not-allowed"
-                                : "bg-purple-400 text-white hover:bg-purple-500 active:scale-95 shadow-sm hover:shadow-md"
+                                : "bg-purple-600 text-white hover:bg-purple-700"
                             }`}
                           >
-                            {isRegistered ? "You're in!" : "Join the fun"}
+                            {isRegistered ? "Registered" : "Register"}
                           </button>
                         </div>
                         {event.imageUrl && (
                           <div className="flex-shrink-0 self-start">
-                            <img src={event.imageUrl} alt={event.title} loading="lazy" className="w-[4.5cm] h-[6.5cm] object-cover rounded-2xl" />
+                            <img
+                              src={event.imageUrl}
+                              alt={event.title}
+                              loading="lazy"
+                              className="w-[4.5cm] h-[6.5cm] object-cover rounded-lg"
+                            />
                           </div>
                         )}
                       </div>
@@ -147,21 +150,25 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="bg-purple-50/50 rounded-3xl p-8 border border-purple-200 shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-          <div className="grid sm:grid-cols-2 gap-6">
+        <section>
+          <h2 className="text-base font-semibold mb-4" style={{ color: "#374151" }}>Quick Actions</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {cards.map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
                 onClick={() => handleCardClick(title)}
-                className="relative bg-white rounded-3xl border border-purple-200 shadow-sm hover:shadow-lg hover:-translate-y-1 active:scale-95 transition-all duration-150 p-6 cursor-pointer overflow-hidden"
+                className="flex items-center gap-3 bg-white rounded-xl border border-purple-100 hover:border-purple-300 hover:shadow-sm transition-all duration-150 px-4 py-3 cursor-pointer"
               >
-                <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-purple-200 rounded-full opacity-20 pointer-events-none" />
-                <div className="w-12 h-12 rounded-2xl bg-purple-200 flex items-center justify-center mb-4">
-                  <Icon className="w-5 h-5 text-purple-400 stroke-[2.5]" />
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(124,58,237,0.08)" }}
+                >
+                  <Icon className="w-4 h-4" style={{ color: "#7C3AED" }} />
                 </div>
-                <h3 className="font-semibold text-gray-900">{title}</h3>
-                <p className="text-sm text-gray-500 mt-1">{desc}</p>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{title}</p>
+                  <p className="text-xs text-gray-400">{desc}</p>
+                </div>
               </div>
             ))}
           </div>

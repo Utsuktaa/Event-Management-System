@@ -12,15 +12,14 @@ export default function ClubMemberDashboard() {
   const token = getTokenFromCookies();
 
   const [clubName, setClubName] = useState("");
-  const [activeTab, setActiveTab] = useState("Discussions"); // default tab
+  const [activeTab, setActiveTab] = useState("Discussions");
 
-  // Fetch club name
   useEffect(() => {
     const fetchClub = async () => {
       try {
         const res = await axios.get(
           `http://localhost:5000/api/clubs/${clubId}`,
-          { headers: { Authorization: `Bearer ${token}` } },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setClubName(res.data.name);
       } catch (err) {
@@ -34,40 +33,47 @@ export default function ClubMemberDashboard() {
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case "Discussions":
-        return <Discussions clubId={clubId} token={token} />;
-      case "Events":
-        return <Events clubId={clubId} token={token} />;
-      case "Polls":
-        return <Polls clubId={clubId} token={token} />;
-      case "Documents":
-        return <Documents clubId={clubId} token={token} />;
-      default:
-        return null;
+      case "Discussions": return <Discussions clubId={clubId} token={token} />;
+      case "Events":      return <Events clubId={clubId} token={token} />;
+      case "Polls":       return <Polls clubId={clubId} token={token} />;
+      case "Documents":   return <Documents clubId={clubId} token={token} />;
+      default:            return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-purple-950 text-white">
-      {/* Club Name Bar */}
-      <div className="w-full bg-white py-6">
-        <h1 className="text-center text-purple-900 font-pixel text-3xl">
+    <div className="min-h-screen font-sans" style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}>
+      <div
+        className="px-6 py-4 border-b"
+        style={{
+          background: "rgba(255,255,255,0.95)",
+          borderColor: "rgba(124,58,237,0.10)",
+        }}
+      >
+        <h1 className="text-xl font-bold" style={{ color: "#1E3A8A" }}>
           {clubName || "Club"}
         </h1>
       </div>
 
-      {/* Tabs in rounded rectangle */}
-      <div className="flex justify-center mt-6">
-        <div className="bg-purple-900 rounded-full p-1 flex gap-1">
+      <div
+        className="sticky top-0 z-30 px-6 border-b"
+        style={{
+          background: "rgba(255,255,255,0.95)",
+          backdropFilter: "blur(12px)",
+          borderColor: "rgba(124,58,237,0.10)",
+        }}
+      >
+        <div className="flex gap-0 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 rounded-full transition-all duration-300 ${
+              className="px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2"
+              style={
                 activeTab === tab
-                  ? "bg-white text-purple-900 font-bold shadow-lg"
-                  : "text-white"
-              }`}
+                  ? { color: "#7C3AED", borderColor: "#7C3AED" }
+                  : { color: "#6B7280", borderColor: "transparent" }
+              }
             >
               {tab}
             </button>
@@ -75,8 +81,7 @@ export default function ClubMemberDashboard() {
         </div>
       </div>
 
-      {/* Active Tab Content */}
-      <div className="mt-8 px-6">{renderActiveTab()}</div>
+      <div className="px-6 py-8">{renderActiveTab()}</div>
     </div>
   );
 }
