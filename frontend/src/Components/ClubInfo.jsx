@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { getTokenFromCookies } from "../Utils/auth";
 import { X, Users, CheckCircle2, AlertCircle } from "lucide-react";
+const API = import.meta.env.VITE_API_URL;
 
 const POLICY_DESC = {
   OPEN: "Can join anytime",
@@ -23,7 +24,7 @@ export default function ClubInfo({ club, onClose }) {
     setStatus("loading");
     try {
       await axios.post(
-        `http://localhost:5000/api/clubs/${club._id}/join`,
+        `${API}/api/clubs/${club._id}/join`,
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       );

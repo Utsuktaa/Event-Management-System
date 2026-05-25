@@ -6,6 +6,7 @@ import Discussions from "../Components/Discussions";
 import Events from "../Components/Events";
 import Polls from "../Components/Polls";
 import Documents from "../Components/Documents";
+const API = import.meta.env.VITE_API_URL;
 
 export default function ClubMemberDashboard() {
   const { clubId } = useParams();
@@ -17,10 +18,9 @@ export default function ClubMemberDashboard() {
   useEffect(() => {
     const fetchClub = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/clubs/${clubId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await axios.get(`${API}/api/clubs/${clubId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setClubName(res.data.name);
       } catch (err) {
         console.error(err);
@@ -33,16 +33,27 @@ export default function ClubMemberDashboard() {
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case "Discussions": return <Discussions clubId={clubId} token={token} />;
-      case "Events":      return <Events clubId={clubId} token={token} />;
-      case "Polls":       return <Polls clubId={clubId} token={token} />;
-      case "Documents":   return <Documents clubId={clubId} token={token} />;
-      default:            return null;
+      case "Discussions":
+        return <Discussions clubId={clubId} token={token} />;
+      case "Events":
+        return <Events clubId={clubId} token={token} />;
+      case "Polls":
+        return <Polls clubId={clubId} token={token} />;
+      case "Documents":
+        return <Documents clubId={clubId} token={token} />;
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen font-sans" style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}>
+    <div
+      className="min-h-screen font-sans"
+      style={{
+        background:
+          "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)",
+      }}
+    >
       <div
         className="px-6 py-4 border-b"
         style={{

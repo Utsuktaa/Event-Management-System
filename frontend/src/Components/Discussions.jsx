@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { PenLine } from "lucide-react";
 import CommentThread from "./CommentThread";
+const API = import.meta.env.VITE_API_URL;
 
 export default function Discussions({ clubId, token }) {
   const [posts, setPosts] = useState([]);
@@ -12,10 +13,9 @@ export default function Discussions({ clubId, token }) {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/clubs/${clubId}/posts`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const res = await axios.get(`${API}/api/clubs/${clubId}/posts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setPosts(res.data || []);
     } catch (err) {
       console.error(err);
@@ -31,7 +31,7 @@ export default function Discussions({ clubId, token }) {
     setSubmitting(true);
     try {
       await axios.post(
-        `http://localhost:5000/api/clubs/${clubId}/posts`,
+        `${API}/api/clubs/${clubId}/posts`,
         { title, description },
         { headers: { Authorization: `Bearer ${token}` } },
       );

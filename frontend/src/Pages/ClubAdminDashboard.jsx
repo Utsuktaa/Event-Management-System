@@ -14,6 +14,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import { API_BASE } from "../config";
+const API = import.meta.env.VITE_API_URL;
 
 //Toast
 function Toast({ message, type, onClose }) {
@@ -79,9 +80,7 @@ export default function ClubAdminCreateEvent() {
   const userJwt = getTokenFromCookies();
   const fetchEvents = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/events/club/${clubId}`,
-      );
+      const res = await axios.get(`${API}/api/events/club/${clubId}`);
       setEvents(res.data);
     } catch (err) {
       console.error(err);
@@ -141,14 +140,12 @@ export default function ClubAdminCreateEvent() {
       }
       console.log("Submitting event with latLng:", latLng);
       if (editingEventId) {
-        await axios.put(
-          `http://localhost:5000/api/events/${editingEventId}`,
-          payload,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
+        await axios.put(`${API}/api/events/${editingEventId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         showToast("Event updated successfully");
       } else {
-        await axios.post("http://localhost:5000/api/events", payload, {
+        await axios.post("${API}/api/events", payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         showToast("Event created successfully");

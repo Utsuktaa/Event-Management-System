@@ -3,6 +3,7 @@ import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronRight, Flag } from "lucide-react";
 import ReportModal from "./ReportModal";
+const API = import.meta.env.VITE_API_URL;
 
 const MAX_DEPTH = 4;
 
@@ -29,7 +30,7 @@ export default function CommentThread({
     setSubmitting(true);
     try {
       await axios.post(
-        `http://localhost:5000/api/clubs/${clubId}/posts`,
+        `${API}/api/clubs/${clubId}/posts`,
         { description: replyText, parentId: post._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );

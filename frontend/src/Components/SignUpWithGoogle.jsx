@@ -1,12 +1,13 @@
 import { useGoogleLogin } from "@react-oauth/google";
+const API = import.meta.env.VITE_API_URL;
 
 const SignUpWithGoogle = () => {
   const responseGoogle = async (authResult) => {
     try {
       if (authResult.code) {
         const res = await fetch(
-          `http://localhost:5000/api/auth/google?code=${authResult.code}`,
-          { method: "GET" }
+          `${API}/api/auth/google?code=${authResult.code}`,
+          { method: "GET" },
         );
         const data = await res.json();
 

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import Toast from "../Components/Toast";
 import { getTokenFromCookies } from "../Utils/auth";
+const API = import.meta.env.VITE_API_URL;
 
 export default function ClubAdminRequests() {
   const { clubId } = useParams();
@@ -18,7 +19,7 @@ export default function ClubAdminRequests() {
   const fetchRequests = async () => {
     try {
       const token = getTokenFromCookies();
-      const res = await axios.get(`http://localhost:5000/api/clubs/${clubId}/requests`, {
+      const res = await axios.get(`${API}/api/clubs/${clubId}/requests`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRequests(res.data);
@@ -29,15 +30,17 @@ export default function ClubAdminRequests() {
     }
   };
 
-  useEffect(() => { fetchRequests(); }, [clubId]);
+  useEffect(() => {
+    fetchRequests();
+  }, [clubId]);
 
   const approveRequest = async (memberId) => {
     try {
       const token = getTokenFromCookies();
       await axios.patch(
-        `http://localhost:5000/api/clubs/${clubId}/requests/${memberId}/approve`,
+        `${API}/api/clubs/${clubId}/requests/${memberId}/approve`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       showToast("Member approved");
       setRequests((prev) => prev.filter((r) => r._id !== memberId));
@@ -50,9 +53,9 @@ export default function ClubAdminRequests() {
     try {
       const token = getTokenFromCookies();
       await axios.patch(
-        `http://localhost:5000/api/clubs/${clubId}/requests/${memberId}/reject`,
+        `${API}/api/clubs/${clubId}/requests/${memberId}/reject`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       showToast("Request rejected");
       setRequests((prev) => prev.filter((r) => r._id !== memberId));
@@ -72,7 +75,10 @@ export default function ClubAdminRequests() {
       ) : (
         <ul className="space-y-4 max-w-xl">
           {requests.map((req) => (
-            <li key={req._id} className="p-4 border border-blue-400 bg-purple-900 rounded flex justify-between items-center">
+            <li
+              key={req._id}
+              className="p-4 border border-blue-400 bg-purple-900 rounded flex justify-between items-center"
+            >
               <div>
                 <p className="font-pixel">{req.userId?.name}</p>
                 <p className="text-sm text-gray-300">{req.userId?.email}</p>
@@ -96,7 +102,13 @@ export default function ClubAdminRequests() {
         </ul>
       )}
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
