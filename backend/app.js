@@ -28,6 +28,9 @@ const supabase = createClient(
 const PORT = process.env.PORT || 5000;
 const app = express();
 
+
+
+
 app.use(
   cors({
     origin: [
@@ -37,7 +40,9 @@ app.use(
   }),
 );
 app.use(express.json());
-
+app.get("/", (req, res) => {
+  res.send("API is running");
+});
 connectDB();
 
 app.use("/api/auth", authRoutes);
@@ -49,11 +54,8 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
-app.use("/", scanRoutes);
+app.use("/api/scan", scanRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 
-app.get("/", (req, res) => {
-  res.send("API is running");
-});
