@@ -4,6 +4,7 @@ const clubController = require("../controllers/club.controller");
 const { verifyClubAccess } = require("../middlewares/clubAccess.middleware");
 const { verifyClubAdmin } = require("../middlewares/clubAdmin.middleware");
 const postController = require("../controllers/clubPost.controller");
+const pollController = require("../controllers/poll.controller");
 
 router.get("/", verifyToken, clubController.getAllClubsWithAdminFlag);
 
@@ -28,5 +29,15 @@ router.post("/:clubId/posts", verifyToken, verifyClubAccess, postController.crea
 router.get("/:clubId/posts", verifyToken, verifyClubAccess, postController.getClubPosts);
 
 router.delete("/:clubId/posts/:postId", verifyToken, verifyClubAccess, postController.deletePost);
+
+router.post("/:clubId/polls", verifyToken, verifyClubAccess, pollController.createPoll);
+router.get("/:clubId/polls", verifyToken, verifyClubAccess, pollController.getPolls);
+router.post("/:clubId/polls/:pollId/vote", verifyToken, verifyClubAccess, pollController.vote);
+router.post("/:clubId/polls/:pollId/comment", verifyToken, verifyClubAccess, pollController.addComment);
+router.patch("/:clubId/polls/:pollId/pin", verifyToken, verifyClubAccess, pollController.togglePin);
+router.patch("/:clubId/polls/:pollId/approve", verifyToken, verifyClubAccess, pollController.approvePoll);
+router.patch("/:clubId/polls/:pollId/reject", verifyToken, verifyClubAccess, pollController.rejectPoll);
+router.patch("/:clubId/polls/:pollId/override-expiry", verifyToken, verifyClubAccess, pollController.overrideExpiry);
+router.patch("/:clubId/polls/:pollId/convert-to-event", verifyToken, verifyClubAccess, pollController.convertToEvent);
 
 module.exports = router;

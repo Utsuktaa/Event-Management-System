@@ -52,7 +52,7 @@ export default function ClubDashboard() {
       case "Members":
         return <MembersList clubId={clubId} token={token} canAssignRoles={can("assign_roles")} />;
       case "Polls":
-        return <Polls clubId={clubId} token={token} />;
+        return <Polls clubId={clubId} token={token} permissions={permissions} />;
       case "Documents":
         return <Documents clubId={clubId} token={token} />;
       case "Manage":

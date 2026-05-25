@@ -11,6 +11,10 @@ const ROLE_PERMISSIONS = {
     "view_analytics",
     "manage_members",
     "assign_roles",
+    "create_poll",
+    "manage_polls",
+    "pin_poll",
+    "convert_poll_to_event",
   ],
   vice_president: [
     "create_event",
@@ -22,6 +26,10 @@ const ROLE_PERMISSIONS = {
     "moderate_posts",
     "view_analytics",
     "manage_members",
+    "create_poll",
+    "manage_polls",
+    "pin_poll",
+    "convert_poll_to_event",
   ],
   club_admin: [
     "create_event",
@@ -32,9 +40,14 @@ const ROLE_PERMISSIONS = {
     "delete_post",
     "view_analytics",
     "manage_members",
+    "create_poll",
+    "manage_polls",
+    "pin_poll",
+    "convert_poll_to_event",
   ],
   member: [
     "create_post",
+    "create_poll",
   ],
 };
 
