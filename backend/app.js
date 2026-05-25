@@ -28,17 +28,18 @@ const supabase = createClient(
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-
-
-
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      " https://1d5d-2400-1a00-3b23-66e0-7dac-3bb4-6d97-b1c3.ngrok-free.app",
+      "https://event-sync-taupe.vercel.app",
+      "https://1d5d-2400-1a00-3b23-66e0-7dac-3bb4-6d97-b1c3.ngrok-free.app",
     ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   }),
 );
+app.options("*", cors());
 app.use(express.json());
 app.get("/", (req, res) => {
   res.send("API is running");
@@ -58,4 +59,3 @@ app.use("/api/scan", scanRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
-
