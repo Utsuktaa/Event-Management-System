@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const Attendance = require("../models/attendance.model");
 const QRCode = require("qrcode");
 const { hasPermission } = require("../utils/permissions");
+const { awardXP } = require("../utils/gamification");
 
 exports.createEvent = async (req, res) => {
   try {
@@ -121,6 +122,7 @@ exports.registerForEvent = async (req, res) => {
 
   try {
     const registration = await EventRegistration.create({ eventId, studentId });
+    await awardXP(studentId, "register_event");
     res.json({ message: "Registered successfully", registration });
   } catch (err) {
     if (err.code === 11000) {
@@ -201,6 +203,7 @@ exports.markAttendance = async (req, res) => {
       studentId,
     });
 
+    await awardXP(studentId, "attend_event");
     res.json({ message: "Attendance marked successfully" });
   } catch (err) {
     console.error(err);

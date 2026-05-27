@@ -1,6 +1,7 @@
 const Club = require("../models/club.model");
 const ClubMember = require("../models/ClubMember");
 const { hasPermission, ROLE_PERMISSIONS } = require("../utils/permissions");
+const { awardXP } = require("../utils/gamification");
 
 exports.getAllClubsWithAdminFlag = async (req, res) => {
   try {
@@ -43,6 +44,7 @@ exports.joinClub = async (req, res) => {
 
     if (club.joinPolicy === "OPEN") {
       const member = await ClubMember.create({ clubId, userId, status: "ACTIVE", role: "member" });
+      await awardXP(userId, "join_club");
       return res.status(201).json(member);
     }
 
@@ -72,6 +74,7 @@ exports.approveJoinRequest = async (req, res) => {
       { new: true }
     );
     if (!member) return res.status(404).json({ message: "Request not found" });
+    await awardXP(member.userId.toString(), "join_club");
     res.json(member);
   } catch (err) {
     res.status(500).json({ message: "Failed to approve request" });

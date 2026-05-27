@@ -1,6 +1,7 @@
 const ClubPost = require("../models/clubPost.model");
 const ClubMember = require("../models/ClubMember");
 const { hasPermission } = require("../utils/permissions");
+const { awardXP } = require("../utils/gamification");
 
 exports.createPost = async (req, res) => {
   try {
@@ -38,6 +39,7 @@ exports.createPost = async (req, res) => {
       parentId,
     });
 
+    await awardXP(userId, parentId ? "comment" : "post_discussion");
     res.status(201).json(post);
   } catch (err) {
     res.status(500).json({ message: "Failed to create post" });

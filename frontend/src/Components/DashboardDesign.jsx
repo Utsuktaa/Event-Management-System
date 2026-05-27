@@ -14,7 +14,7 @@ export default function Dashboard() {
 
   const cards = [
     { icon: Calendar,  title: "Attendance",        desc: "Track your presence" },
-    { icon: Users,     title: "Leaderboard",       desc: "See your ranking" },
+    { icon: Users,     title: "Stats",             desc: "XP, badges & ranks" },
     { icon: BarChart2, title: "Join Clubs",         desc: "Unlock club events" },
     { icon: Activity,  title: "Activity Timeline",  desc: "Your recent activity" },
   ];
@@ -52,7 +52,7 @@ export default function Dashboard() {
 
   const handleCardClick = (title) => {
     if (title === "Attendance")        navigate("/attendance");
-    if (title === "Leaderboard")       navigate("/leaderboard");
+    if (title === "Stats")             navigate("/stats");
     if (title === "Join Clubs")        navigate("/join-clubs");
     if (title === "Activity Timeline") navigate("/activity");
   };

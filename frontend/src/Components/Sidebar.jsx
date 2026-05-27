@@ -1,20 +1,23 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   House,
   Users,
   LogOut,
   Settings,
   Calendar,
-  Trophy,
   Activity,
   Shield,
   BarChart2,
   Flag,
   FileText,
   ClipboardList,
+  Sparkles,
 } from "lucide-react";
-import { clearAuthCookies } from "../Utils/auth";
+import { clearAuthCookies, getTokenFromCookies } from "../Utils/auth";
 import Logo from "./Logo";
+import { API_BASE } from "../config";
 
 const userGroups = [
   {
@@ -28,9 +31,9 @@ const userGroups = [
   {
     label: "Personal",
     items: [
-      { icon: Trophy,        label: "Leaderboard", path: "/leaderboard" },
-      { icon: Activity,      label: "Activity",    path: "/activity" },
-      { icon: ClipboardList, label: "Attendance",  path: "/attendance" },
+      { icon: Sparkles,      label: "Stats",      path: "/stats" },
+      { icon: Activity,      label: "Activity",   path: "/activity" },
+      { icon: ClipboardList, label: "Attendance", path: "/attendance" },
     ],
   },
 ];
@@ -56,6 +59,21 @@ const adminGroups = [
 export default function Sidebar({ role = "user" }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [xp, setXp] = useState(null);
+  const [streak, setStreak] = useState(null);
+
+  useEffect(() => {
+    if (role !== "user") return;
+    const token = getTokenFromCookies();
+    if (!token) return;
+    axios
+      .get(`${API_BASE}/api/stats/navbar`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        setXp(res.data.xp ?? 0);
+        setStreak(res.data.streak ?? 0);
+      })
+      .catch(() => {});
+  }, [role, location.pathname]);
 
   const handleLogout = () => {
     clearAuthCookies();
@@ -63,7 +81,6 @@ export default function Sidebar({ role = "user" }) {
   };
 
   const groups = role === "admin" ? adminGroups : userGroups;
-
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -77,6 +94,20 @@ export default function Sidebar({ role = "user" }) {
       <div className="px-5 py-5 border-b" style={{ borderColor: "rgba(124,58,237,0.10)" }}>
         <Logo />
       </div>
+
+      {role === "user" && xp !== null && (
+        <div
+          className="mx-3 mt-3 px-3 py-2 rounded-xl flex items-center justify-between gap-2"
+          style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(167,139,250,0.12) 100%)", border: "1px solid rgba(124,58,237,0.15)" }}
+        >
+          <span className="text-xs font-bold" style={{ color: "#7C3AED" }}>
+            🔥 {xp} XP
+          </span>
+          <span className="text-xs font-semibold" style={{ color: "#6D28D9" }}>
+            ⚡ {streak}d
+          </span>
+        </div>
+      )}
 
       <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
         {groups.map((group) => (

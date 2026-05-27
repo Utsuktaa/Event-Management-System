@@ -1,6 +1,7 @@
 const Event = require("../models/event.model");
 const EventRegistration = require("../models/eventRegistration.model");
 const Attendance = require("../models/attendance.model");
+const { awardXP } = require("../utils/gamification");
 
 function isInsideRadius(studentLat, studentLng, event) {
   const R = 6371000; // radius on earth
@@ -63,6 +64,7 @@ exports.markAttendance = async (req, res) => {
 
     await Attendance.create({ eventId, studentId });
 
+    await awardXP(studentId, "attend_event");
     res.json({ message: "Attendance marked successfully" });
   } catch (err) {
     console.error("markAttendance error:", err);

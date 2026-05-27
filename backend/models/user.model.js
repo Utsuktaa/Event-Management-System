@@ -20,6 +20,28 @@ const UserSchema = new Schema(
       enum: ["student", "admin", "superadmin", "normal"],
       default: "student",
     },
+    xp: {
+      type: Number,
+      default: 0,
+    },
+    streak: {
+      type: Number,
+      default: 0,
+    },
+    lastActiveDate: {
+      type: Date,
+      default: null,
+    },
+    badges: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Badge",
+      },
+    ],
+    isInLeaderboard: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

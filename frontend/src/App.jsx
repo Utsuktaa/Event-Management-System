@@ -15,7 +15,7 @@ import AttendanceAnalytics from "./Pages/AttendanceAnalytics";
 import ModerationDashboard from "./Pages/ModerationDashboard";
 import ActivityPage from "./Pages/ActivityPage";
 import AttendancePage from "./Pages/AttendancePage";
-import LeaderboardPage from "./Pages/LeaderboardPage";
+import StatsPage from "./Pages/StatsPage";
 
 function App() {
   return (
@@ -36,7 +36,7 @@ function App() {
       <Route path="/my-events" element={<RegisteredEvents />} />
       <Route path="/activity" element={<ActivityPage />} />
       <Route path="/attendance" element={<AttendancePage />} />
-      <Route path="/leaderboard" element={<LeaderboardPage />} />
+      <Route path="/stats" element={<StatsPage />} />
     </Routes>
   );
 }
