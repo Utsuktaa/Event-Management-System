@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, ChevronRight } from "lucide-react";
 import ClubInfo from "../Components/ClubInfo";
 import Toast from "../Components/Toast";
-import Sidebar from "../Components/Sidebar";
+import PageLayout from "../Components/PageLayout";
 import { getTokenFromCookies } from "../Utils/auth";
 import { API_BASE } from "../config";
 
@@ -17,7 +17,7 @@ const STATUS_CONFIG = {
     color: "bg-yellow-500/15 text-yellow-700 border-yellow-500/25",
   },
   REJECTED: {
-    label: "Request rejected",
+    label: "Request rejected — tap to re-apply",
     color: "bg-red-500/15 text-red-600 border-red-500/25",
   },
   NONE: {
@@ -27,8 +27,6 @@ const STATUS_CONFIG = {
 };
 
 const ROLE_LABELS = {
-  president: "President",
-  vice_president: "Vice President",
   club_admin: "Club Admin",
   member: "Member",
 };
@@ -70,12 +68,13 @@ export default function JoinClubs() {
     if (club.membershipStatus === "ACTIVE") navigate(`/clubs/${club._id}`);
     else if (club.membershipStatus === "PENDING")
       showToast("Your join request is pending approval.", "error");
-    else if (club.membershipStatus === "REJECTED")
-      showToast("Your previous request was rejected.", "error");
     else if (club.joinPolicy === "CLOSED")
       showToast("This club is not accepting new members.", "error");
-    else setSelectedClub(club);
+    else setSelectedClub(club); // covers REJECTED (re-apply) and NONE
   };
+
+  const isClickable = (club) =>
+    club.membershipStatus !== "PENDING" && club.joinPolicy !== "CLOSED";
 
   const getStatusDisplay = (club) => {
     if (club.membershipStatus === "ACTIVE" && club.clubRole) {
@@ -87,36 +86,10 @@ export default function JoinClubs() {
     return STATUS_CONFIG[club.membershipStatus] || STATUS_CONFIG.NONE;
   };
 
-  const isClickable = (club) =>
-    club.membershipStatus !== "REJECTED" && club.joinPolicy !== "CLOSED";
-
   return (
-    <div
-      className="min-h-screen font-sans flex"
-      style={{
-        background:
-          "linear-gradient(135deg, #ede9fe 0%, #f5f3ff 40%, #e0e7ff 100%)",
-      }}
-    >
-      <Sidebar role="user" />
-
-      <div className="flex-1 flex flex-col ml-56">
-        <header
-          className="px-8 py-4 border-b"
-          style={{
-            background: "rgba(255,255,255,0.92)",
-            borderColor: "rgba(124,58,237,0.10)",
-          }}
-        >
-          <h1 className="text-lg font-semibold" style={{ color: "#1E3A8A" }}>
-            Clubs
-          </h1>
-        </header>
-
-        <main className="flex-1 max-w-4xl w-full mx-auto px-8 py-8">
-          <p className="text-sm text-gray-500 mb-6">
-            Join a club or access existing one.
-          </p>
+    <PageLayout title="Clubs" role="user">
+      <div className="flex-1 max-w-4xl w-full mx-auto px-8 py-8">
+        <p className="text-sm text-gray-500 mb-6">Join a club or access existing one.</p>
 
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -192,17 +165,6 @@ export default function JoinClubs() {
               })}
             </div>
           )}
-        </main>
-
-        <footer
-          className="py-6 text-center text-xs border-t"
-          style={{
-            color: "rgba(107,114,128,0.6)",
-            borderColor: "rgba(124,58,237,0.10)",
-          }}
-        >
-          © 2025 EventSync
-        </footer>
       </div>
 
       {selectedClub && (
@@ -215,6 +177,6 @@ export default function JoinClubs() {
           onClose={() => setToast(null)}
         />
       )}
-    </div>
+    </PageLayout>
   );
 }

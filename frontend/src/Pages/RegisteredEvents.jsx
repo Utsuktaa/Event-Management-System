@@ -3,7 +3,7 @@ import axios from "axios";
 import { Clock, MapPin, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 import { API_BASE } from "../config";
-import Sidebar from "../Components/Sidebar";
+import PageLayout from "../Components/PageLayout";
 
 const FILTERS = ["All", "Upcoming", "Past"];
 
@@ -73,22 +73,9 @@ export default function RegisteredEvents() {
   });
 
   return (
-    <div
-      className="min-h-screen font-sans flex"
-      style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}
-    >
-      <Sidebar role="user" />
-
-      <div className="flex-1 flex flex-col ml-56">
-        <header
-          className="px-8 py-4 border-b"
-          style={{ background: "rgba(255,255,255,0.92)", borderColor: "rgba(124,58,237,0.08)" }}
-        >
-          <h1 className="text-lg font-semibold" style={{ color: "#1E3A8A" }}>My Events</h1>
-        </header>
-
-        <main className="flex-1 px-8 py-8">
-          <div className="flex items-center gap-2 mb-6">
+    <PageLayout title="My Events" role="user">
+      <div className="px-8 py-8">
+        <div className="flex items-center gap-2 mb-6">
             {FILTERS.map((f) => (
               <button
                 key={f}
@@ -199,8 +186,7 @@ export default function RegisteredEvents() {
               })}
             </div>
           )}
-        </main>
       </div>
-    </div>
+    </PageLayout>
   );
 }

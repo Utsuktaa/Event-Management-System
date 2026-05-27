@@ -2,6 +2,7 @@ const EventRegistration = require("../models/eventRegistration.model");
 const Attendance = require("../models/attendance.model");
 const ClubMember = require("../models/ClubMember");
 const Event = require("../models/event.model");
+const User = require("../models/user.model");
 
 exports.getUserActivity = async (req, res) => {
   try {
@@ -130,5 +131,36 @@ exports.getAttendanceStats = async (req, res) => {
     });  } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch attendance stats" });
+  }
+};
+
+/** GET /api/user/profile — return name + email */
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select("name email").lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ name: user.name, email: user.email });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch profile" });
+  }
+};
+
+/** PATCH /api/user/profile — update name only */
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { name: name.trim() },
+      { new: true }
+    ).select("name email").lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ name: user.name, email: user.email });
+  } catch (err) {
+    console.error("updateProfile error:", err);
+    res.status(500).json({ message: "Failed to update profile" });
   }
 };

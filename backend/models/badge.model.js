@@ -6,7 +6,10 @@ const BadgeSchema = new Schema({
   icon: { type: String, required: true },
   conditionType: {
     type: String,
-    enum: ["xp", "clubs_joined", "events_attended", "streak", "early_bird", "first_club"],
+    enum: [
+      "xp", "clubs_joined", "events_attended", "streak",
+      "early_bird", "first_club", "posts", "replies", "host_event",
+    ],
     required: true,
   },
   conditionValue: { type: Number, default: 1 },

@@ -1,11 +1,23 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { getTokenFromCookies } from "../Utils/auth";
-import { Plus, FileText, ExternalLink } from "lucide-react";
+import { Plus, FileText, ExternalLink, Trash2 } from "lucide-react";
 import { API_BASE } from "../config";
 
-function DocumentCard({ doc }) {
+function DocumentCard({ doc, canDelete, onDelete }) {
   const [expanded, setExpanded] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (!window.confirm(`Delete "${doc.name}"? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      await onDelete(doc._id);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div
@@ -21,6 +33,16 @@ function DocumentCard({ doc }) {
           <p className="text-sm font-semibold text-gray-900 truncate">{doc.name}</p>
           <p className="text-xs text-gray-400 mt-0.5">{(doc.size / 1024).toFixed(1)} KB</p>
         </div>
+        {canDelete && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Delete document"
+            className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {expanded && (
@@ -42,7 +64,7 @@ function DocumentCard({ doc }) {
   );
 }
 
-export default function Documents({ clubId }) {
+export default function Documents({ clubId, canDelete = false }) {
   const token = getTokenFromCookies();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +112,18 @@ export default function Documents({ clubId }) {
     }
   };
 
+  const handleDelete = async (documentId) => {
+    try {
+      await axios.delete(`${API_BASE}/api/documents/${documentId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDocuments((prev) => prev.filter((d) => d._id !== documentId));
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed: " + (err.response?.data?.error || err.message));
+    }
+  };
+
   return (
     <div className="space-y-6 mt-4">
       <div className="bg-white/80 rounded-3xl p-6 border border-purple-200 shadow-sm relative overflow-hidden">
@@ -129,7 +163,12 @@ export default function Documents({ clubId }) {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {documents.map((doc) => (
-              <DocumentCard key={doc._id} doc={doc} />
+              <DocumentCard
+                key={doc._id}
+                doc={doc}
+                canDelete={canDelete}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}

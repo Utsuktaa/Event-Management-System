@@ -343,7 +343,7 @@ export default function ClubAdminCreateEvent() {
                   </div>
                   {qrToggles[event._id] && event.qrToken && (
                     <QRCodeCanvas
-                      value={`${API_BASE}/scan?eventId=${event._id}&token=${event.qrToken}`}
+                      value={`${API_BASE}/api/scan?eventId=${event._id}&token=${event.qrToken}`}
                       size={128}
                       className="mt-2 border border-gray-400 rounded"
                     />

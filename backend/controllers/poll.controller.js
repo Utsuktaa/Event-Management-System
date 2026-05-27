@@ -4,6 +4,7 @@ const ClubMember = require("../models/ClubMember");
 const { hasPermission } = require("../utils/permissions");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
+const { notifyMany } = require("../utils/notify");
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const TRUST_THRESHOLD = 3;
@@ -92,8 +93,12 @@ function sanitizePoll(poll, userId, canManage) {
   const originalOptions = obj.options;
 
   obj.totalVotes = getTotalVotes({ options: originalOptions });
-  obj.winningOptionIndex = showResults ? getWinningOptionIndex({ options: originalOptions }) : -1;
-  obj.userVotes = userId ? getUserVotes({ options: originalOptions }, userId) : [];
+  obj.winningOptionIndex = showResults
+    ? getWinningOptionIndex({ options: originalOptions })
+    : -1;
+  obj.userVotes = userId
+    ? getUserVotes({ options: originalOptions }, userId)
+    : [];
 
   obj.options = originalOptions.map((opt) => {
     const voteCount = opt.voters?.length || 0;
@@ -105,7 +110,8 @@ function sanitizePoll(poll, userId, canManage) {
 
     if (showResults) {
       const total = obj.totalVotes;
-      sanitized.percentage = total > 0 ? Math.round((voteCount / total) * 100) : 0;
+      sanitized.percentage =
+        total > 0 ? Math.round((voteCount / total) * 100) : 0;
     }
 
     if (!hideVoters && opt.voters?.length) {
@@ -163,8 +169,10 @@ exports.createPoll = async (req, res) => {
     if (!expiryDate) {
       return res.status(400).json({ message: "Expiry date is required" });
     }
-  if (new Date(expiryDate) <= new Date()) {
-      return res.status(400).json({ message: "Expiry date must be in the future" });
+    if (new Date(expiryDate) <= new Date()) {
+      return res
+        .status(400)
+        .json({ message: "Expiry date must be in the future" });
     }
 
     const membership = await getMembership(clubId, userId);
@@ -174,7 +182,12 @@ exports.createPoll = async (req, res) => {
       }
     }
 
-    const autoApprove = await shouldAutoApprove(req.user, membership, clubId, userId);
+    const autoApprove = await shouldAutoApprove(
+      req.user,
+      membership,
+      clubId,
+      userId,
+    );
 
     const poll = await Poll.create({
       clubId,
@@ -198,6 +211,33 @@ exports.createPoll = async (req, res) => {
 
     const canManage = await canManagePolls(req.user, membership);
     res.status(201).json(sanitizePoll(populated, userId, canManage));
+
+    // Notify all active club members about the new poll (fire after response)
+    if (poll.status === "approved") {
+      setImmediate(async () => {
+        try {
+          const members = await ClubMember.find({
+            clubId,
+            status: "ACTIVE",
+          }).select("userId");
+          const memberIds = members
+            .map((m) => m.userId)
+            .filter((id) => id.toString() !== userId);
+          if (memberIds.length > 0) {
+            await notifyMany(
+              memberIds,
+              "new_poll",
+              "New poll in your club",
+              `"${poll.question.slice(0, 80)}"`,
+              `/clubs/${clubId}`,
+              { refId: poll._id, refModel: "Poll" },
+            );
+          }
+        } catch (e) {
+          console.error("[notify poll] failed:", e.message);
+        }
+      });
+    }
   } catch (err) {
     console.error("Create poll error:", err);
     res.status(500).json({ message: "Failed to create poll" });
@@ -225,9 +265,7 @@ exports.getPolls = async (req, res) => {
       .populate("options.voters", "name")
       .sort({ pinned: -1, pinnedAt: -1, createdAt: -1 });
 
-    res.json(
-      polls.map((p) => sanitizePoll(p, userId, canManage)),
-    );
+    res.json(polls.map((p) => sanitizePoll(p, userId, canManage)));
   } catch (err) {
     console.error("Get polls error:", err);
     res.status(500).json({ message: "Failed to fetch polls" });
@@ -241,7 +279,11 @@ exports.vote = async (req, res) => {
     const { optionIndices } = req.body;
 
     if (!Array.isArray(optionIndices) || optionIndices.length === 0) {
-      return res.status(400).json({ message: "Select at least one option: optionIndices required" });
+      return res
+        .status(400)
+        .json({
+          message: "Select at least one option: optionIndices required",
+        });
     }
 
     const poll = await Poll.findById(pollId);
@@ -268,7 +310,9 @@ exports.vote = async (req, res) => {
     }
 
     if (!fresh.allowMultipleVotes && validIndices.length > 1) {
-      return res.status(400).json({ message: "This poll allows only one vote" });
+      return res
+        .status(400)
+        .json({ message: "This poll allows only one vote" });
     }
 
     const existingVotes = getUserVotes(fresh, userId);
@@ -281,7 +325,11 @@ exports.vote = async (req, res) => {
     });
 
     validIndices.forEach((idx) => {
-      if (!fresh.options[idx].voters.some((v) => v.toString() === userId.toString())) {
+      if (
+        !fresh.options[idx].voters.some(
+          (v) => v.toString() === userId.toString(),
+        )
+      ) {
         fresh.options[idx].voters.push(userId);
       }
     });
@@ -449,7 +497,9 @@ exports.overrideExpiry = async (req, res) => {
         poll.status = "approved";
       }
     } else {
-      return res.status(400).json({ message: "Provide expiryDate or closeNow" });
+      return res
+        .status(400)
+        .json({ message: "Provide expiryDate or closeNow" });
     }
 
     await poll.save();
@@ -482,11 +532,15 @@ exports.convertToEvent = async (req, res) => {
     }
 
     if (poll.type !== "event") {
-      return res.status(400).json({ message: "Only event-type polls can be converted" });
+      return res
+        .status(400)
+        .json({ message: "Only event-type polls can be converted" });
     }
 
     if (poll.convertedEventId) {
-      return res.status(400).json({ message: "Poll already converted to an event" });
+      return res
+        .status(400)
+        .json({ message: "Poll already converted to an event" });
     }
 
     const winnerIdx = getWinningOptionIndex(poll);
@@ -506,8 +560,16 @@ exports.convertToEvent = async (req, res) => {
     };
 
     if (req.body.createEvent) {
-      const { title, description, date, location, imageUrl, latitude, longitude, attendanceRadius } =
-        req.body;
+      const {
+        title,
+        description,
+        date,
+        location,
+        imageUrl,
+        latitude,
+        longitude,
+        attendanceRadius,
+      } = req.body;
 
       const qrToken = crypto.randomBytes(16).toString("hex");
       const event = await Event.create({
@@ -528,7 +590,7 @@ exports.convertToEvent = async (req, res) => {
       poll.convertedEventId = event._id;
       await poll.save();
 
-      const scanUrl = `http://localhost:3000/scan?eventId=${event._id}&token=${event.qrToken}`;
+      const scanUrl = `https://event-management-backend-n9eq.onrender.com/api/scan?eventId=${event._id}&token=${event.qrToken}`;
       const qrImage = await QRCode.toDataURL(scanUrl);
 
       return res.status(201).json({

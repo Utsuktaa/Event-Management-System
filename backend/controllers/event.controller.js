@@ -7,6 +7,7 @@ const Attendance = require("../models/attendance.model");
 const QRCode = require("qrcode");
 const { hasPermission } = require("../utils/permissions");
 const { awardXP } = require("../utils/gamification");
+const { notifyMany } = require("../utils/notify");
 
 exports.createEvent = async (req, res) => {
   try {
@@ -21,6 +22,7 @@ exports.createEvent = async (req, res) => {
       latitude,
       longitude,
       attendanceRadius,
+      registrationCap,
     } = req.body;
 
     if (!title || !date || !visibility) {
@@ -46,6 +48,12 @@ exports.createEvent = async (req, res) => {
         }
       }
     }
+
+    const cap = registrationCap ? parseInt(registrationCap, 10) : null;
+    if (cap !== null && (isNaN(cap) || cap < 1)) {
+      return res.status(400).json({ message: "Registration cap must be a positive number" });
+    }
+
     const qrToken = crypto.randomBytes(16).toString("hex");
     const event = await Event.create({
       title,
@@ -60,10 +68,32 @@ exports.createEvent = async (req, res) => {
       latitude,
       longitude,
       attendanceRadius,
+      registrationCap: cap,
     });
 
-    const scanUrl = `http://localhost:3000/scan?eventId=${event._id}&token=${event.qrToken}`;
+    const scanUrl = `${process.env.BACKEND_BASE_URL || "http://localhost:5000"}/api/scan?eventId=${event._id}&token=${event.qrToken}`;
     const qrImage = await QRCode.toDataURL(scanUrl);
+
+    // Notify all active club members about the new event (club-scoped events only)
+    if (visibility === "club" && clubId) {
+      const members = await ClubMember.find({
+        clubId,
+        status: "ACTIVE",
+      }).select("userId");
+      const memberIds = members
+        .map((m) => m.userId)
+        .filter((id) => id.toString() !== req.user.userId);
+      if (memberIds.length > 0) {
+        await notifyMany(
+          memberIds,
+          "new_club_event",
+          "New event in your club",
+          `"${title}" has been scheduled`,
+          `/clubs/${clubId}`,
+          { refId: event._id, refModel: "Event" }
+        );
+      }
+    }
 
     res.status(201).json({
       event,
@@ -78,21 +108,38 @@ exports.createEvent = async (req, res) => {
 };
 exports.getEvents = async (req, res) => {
   try {
-    // Only fetch school-wide events
-    const events = await Event.find({ visibility: "school" }).sort({ date: 1 }); // sort by date ascending
-    res.status(200).json(events);
+    const events = await Event.find({ visibility: "school" }).sort({ date: 1 }).lean();
+    const eventIds = events.map((e) => e._id);
+    const counts = await EventRegistration.aggregate([
+      { $match: { eventId: { $in: eventIds } } },
+      { $group: { _id: "$eventId", count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(counts.map((c) => [c._id.toString(), c.count]));
+    const result = events.map((e) => ({
+      ...e,
+      registrationCount: countMap[e._id.toString()] || 0,
+    }));
+    res.status(200).json(result);
   } catch (err) {
     console.error("Fetch Events Error:", err);
     res.status(500).json({ message: "Failed to fetch events" });
   }
 };
+
 exports.getEventsByClub = async (req, res) => {
   try {
-    const events = await Event.find({
-      clubId: req.params.clubId,
-    }).sort({ date: 1 });
-
-    res.json(events);
+    const events = await Event.find({ clubId: req.params.clubId }).sort({ date: 1 }).lean();
+    const eventIds = events.map((e) => e._id);
+    const counts = await EventRegistration.aggregate([
+      { $match: { eventId: { $in: eventIds } } },
+      { $group: { _id: "$eventId", count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(counts.map((c) => [c._id.toString(), c.count]));
+    const result = events.map((e) => ({
+      ...e,
+      registrationCount: countMap[e._id.toString()] || 0,
+    }));
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch events" });
   }
@@ -116,11 +163,50 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
+exports.deleteEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const userId = req.user.userId;
+
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    // Allow creator or platform admin
+    if (
+      event.createdBy.toString() !== userId &&
+      !["admin", "superadmin"].includes(req.user.role)
+    ) {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
+
+    await Event.findByIdAndDelete(eventId);
+    // Clean up registrations and attendance for this event
+    await EventRegistration.deleteMany({ eventId });
+    await Attendance.deleteMany({ eventId });
+
+    res.json({ message: "Event deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete event" });
+  }
+};
+
 exports.registerForEvent = async (req, res) => {
   const studentId = req.user.userId;
   const { eventId } = req.params;
 
   try {
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    // Enforce registration cap
+    if (event.registrationCap != null) {
+      const currentCount = await EventRegistration.countDocuments({ eventId });
+      if (currentCount >= event.registrationCap) {
+        return res.status(400).json({ message: "This event is full. Registration is closed." });
+      }
+    }
+
     const registration = await EventRegistration.create({ eventId, studentId });
     await awardXP(studentId, "register_event");
     res.json({ message: "Registered successfully", registration });
@@ -161,55 +247,7 @@ exports.getStudentRegistrations = async (req, res) => {
   }
 };
 
-// attendance function
-
-exports.markAttendance = async (req, res) => {
-  try {
-    const { eventId, token, lat, lng } = req.body;
-    const studentId = req.user.userId;
-
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
-
-    if (event.qrToken !== token) {
-      return res.status(400).json({ message: "Invalid QR token" });
-    }
-
-    const registration = await EventRegistration.findOne({
-      eventId,
-      studentId,
-    });
-
-    if (!registration) {
-      return res
-        .status(403)
-        .json({ message: "You are not registered for this event" });
-    }
-
-    const existing = await Attendance.findOne({
-      eventId,
-      studentId,
-    });
-
-    if (existing) {
-      return res.status(400).json({ message: "Attendance already recorded" });
-    }
-
-    await Attendance.create({
-      eventId,
-      studentId,
-    });
-
-    await awardXP(studentId, "attend_event");
-    res.json({ message: "Attendance marked successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Attendance failed" });
-  }
-};
+// attendance is handled by attendance.controller.js via /api/attendance/mark
 
 
 exports.getAnalyticsOverview = async (req, res) => {

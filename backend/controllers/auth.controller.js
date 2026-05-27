@@ -7,21 +7,45 @@ const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "User exists" });
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Name is required." });
+    }
+    if (name.trim().length < 2) {
+      return res.status(400).json({ message: "Name must be at least 2 characters." });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: "Email is required." });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: "Enter a valid email address." });
+    }
+    if (!password) {
+      return res.status(400).json({ message: "Password is required." });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters." });
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      return res.status(400).json({ message: "Password must include uppercase, lowercase, and a number." });
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(409).json({ message: "An account with this email already exists." });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
       role: "student",
     });
 
     await user.save();
-    res.status(201).json({ message: "User created successfully" });
+    res.status(201).json({ message: "Account created successfully. Please log in." });
   } catch (err) {
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 };
 
@@ -29,11 +53,19 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(401).json({ message: "No account found with this email." });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(401).json({ message: "Incorrect password. Please try again." });
+    }
 
     const token = jwt.sign(
       { userId: user._id, role: user.role },
@@ -43,7 +75,7 @@ const login = async (req, res) => {
 
     res.json({ token, email: user.email, name: user.name, role: user.role });
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 };
 

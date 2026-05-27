@@ -16,6 +16,7 @@ import ModerationDashboard from "./Pages/ModerationDashboard";
 import ActivityPage from "./Pages/ActivityPage";
 import AttendancePage from "./Pages/AttendancePage";
 import StatsPage from "./Pages/StatsPage";
+import ProfilePage from "./Pages/ProfilePage";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
       <Route path="/activity" element={<ActivityPage />} />
       <Route path="/attendance" element={<AttendancePage />} />
       <Route path="/stats" element={<StatsPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
     </Routes>
   );
 }

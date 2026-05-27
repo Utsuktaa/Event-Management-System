@@ -4,7 +4,6 @@ import {
   Shield,
   BarChart2,
   Flag,
-  FileText,
   AlertTriangle,
   ChevronRight,
 } from "lucide-react";
@@ -30,12 +29,6 @@ const NAV_CARDS = [
     title: "Moderation",
     desc: "Review reported posts and comments",
     route: "/moderation",
-  },
-  {
-    icon: FileText,
-    title: "Reports",
-    desc: "Generate system reports",
-    route: "/reports",
   },
 ];
 

@@ -2,6 +2,7 @@ const ClubPost = require("../models/clubPost.model");
 const ClubMember = require("../models/ClubMember");
 const { hasPermission } = require("../utils/permissions");
 const { awardXP } = require("../utils/gamification");
+const { notify } = require("../utils/notify");
 
 exports.createPost = async (req, res) => {
   try {
@@ -40,6 +41,22 @@ exports.createPost = async (req, res) => {
     });
 
     await awardXP(userId, parentId ? "comment" : "post_discussion");
+
+    // Notify original post author when someone replies (not self-reply)
+    if (parentId) {
+      const parent = await ClubPost.findById(parentId).select("authorId title description");
+      if (parent && parent.authorId.toString() !== userId) {
+        await notify(
+          parent.authorId,
+          "reply_to_post",
+          "New reply to your post",
+          `Someone replied to your post: "${(parent.title || parent.description || "").slice(0, 60)}"`,
+          `/clubs/${clubId}`,
+          { refId: post._id, refModel: "ClubPost" }
+        );
+      }
+    }
+
     res.status(201).json(post);
   } catch (err) {
     res.status(500).json({ message: "Failed to create post" });

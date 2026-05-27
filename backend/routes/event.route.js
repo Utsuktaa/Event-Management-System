@@ -3,38 +3,20 @@ const router = express.Router();
 const { verifyToken } = require("../middlewares/auth.middleware");
 const eventController = require("../controllers/event.controller");
 
-router.post("/", verifyToken, eventController.createEvent);
-router.get("/school-events", eventController.getEvents);
-router.get("/club/:clubId", eventController.getEventsByClub);
+// Static routes MUST come before /:eventId param routes
+router.post("/",                        verifyToken, eventController.createEvent);
+router.get("/school-events",                         eventController.getEvents);
+router.get("/registrations",            verifyToken, eventController.getStudentRegistrations);
+router.get("/club/:clubId",                          eventController.getEventsByClub);
 
-// Analytics routes
-router.get(
-  "/analytics/overview",
-  verifyToken,
-  eventController.getAnalyticsOverview,
-);
-router.get(
-  "/analytics/monthly",
-  verifyToken,
-  eventController.getMonthlyAnalytics,
-);
-router.get(
-  "/analytics/visibility",
-  verifyToken,
-  eventController.getVisibilityDistribution,
-);
+// Analytics
+router.get("/analytics/overview",       verifyToken, eventController.getAnalyticsOverview);
+router.get("/analytics/monthly",        verifyToken, eventController.getMonthlyAnalytics);
+router.get("/analytics/visibility",     verifyToken, eventController.getVisibilityDistribution);
 
-router.post(
-  "/:eventId/register",
-  verifyToken,
-  eventController.registerForEvent,
-);
-router.put("/:eventId", verifyToken, eventController.updateEvent);
-router.get(
-  "/registrations",
-  verifyToken,
-  eventController.getStudentRegistrations,
-);
-router.post("/attendance", verifyToken, eventController.markAttendance);
+// Param routes last
+router.post("/:eventId/register",       verifyToken, eventController.registerForEvent);
+router.put("/:eventId",                 verifyToken, eventController.updateEvent);
+router.delete("/:eventId",              verifyToken, eventController.deleteEvent);
 
 module.exports = router;

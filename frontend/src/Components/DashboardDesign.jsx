@@ -72,10 +72,16 @@ export default function Dashboard() {
       );
       setRegisteredEvents((prev) => [...prev, eventId]);
     } catch (err) {
-      if (err.response?.status === 400 || err.response?.status === 409) {
+      const msg = err.response?.data?.message || "";
+      if (err.response?.status === 400 && msg === "Already registered") {
         setRegisteredEvents((prev) => [...prev, eventId]);
+      } else if (err.response?.status === 400 && msg.includes("full")) {
+        // Refresh events to show updated count
+        const res = await axios.get(`${API_BASE}/api/events/school-events`);
+        const now = new Date();
+        setEvents((res.data || []).filter((ev) => new Date(ev.date) >= now));
       } else {
-        alert(err.response?.data?.message || "Something went wrong. Try again.");
+        alert(msg || "Something went wrong. Try again.");
       }
     }
   };
@@ -98,13 +104,30 @@ export default function Dashboard() {
               {events.map((event) => {
                 const isExpanded = expandedEvent === event._id;
                 const isRegistered = registeredEvents.includes(event._id);
+                const cap = event.registrationCap;
+                const count = event.registrationCount || 0;
+                const isFull = cap != null && count >= cap;
+                const spotsLeft = cap != null ? cap - count : null;
                 return (
                   <div
                     key={event._id}
                     onClick={() => toggleExpand(event._id)}
                     className="bg-white rounded-xl border border-purple-100 hover:border-purple-300 hover:shadow-sm transition-all duration-150 p-5 cursor-pointer"
                   >
-                    <h3 className="text-base font-semibold text-gray-900">{event.title}</h3>
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-base font-semibold text-gray-900">{event.title}</h3>
+                      {cap != null && (
+                        <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                          isFull
+                            ? "bg-red-50 text-red-500 border-red-200"
+                            : spotsLeft <= 5
+                              ? "bg-orange-50 text-orange-500 border-orange-200"
+                              : "bg-purple-50 text-purple-600 border-purple-200"
+                        }`}>
+                          {isFull ? "Full" : `${count}/${cap} spots`}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex gap-5 text-sm text-gray-500 mt-1.5">
                       <span className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-purple-400" />
@@ -119,16 +142,26 @@ export default function Dashboard() {
                       <div className="mt-4 flex flex-col sm:flex-row gap-4">
                         <div className="flex-1 flex flex-col gap-3">
                           <p className="text-sm text-gray-600">{event.description}</p>
+                          {cap != null && (
+                            <div className="w-full bg-purple-100 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${isFull ? "bg-red-400" : "bg-purple-500"}`}
+                                style={{ width: `${Math.min(100, (count / cap) * 100)}%` }}
+                              />
+                            </div>
+                          )}
                           <button
-                            disabled={isRegistered}
+                            disabled={isRegistered || isFull}
                             onClick={(e) => handleRegister(e, event._id, isRegistered)}
                             className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 w-fit ${
                               isRegistered
                                 ? "bg-purple-100 text-purple-500 cursor-not-allowed"
-                                : "bg-purple-600 text-white hover:bg-purple-700"
+                                : isFull
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-purple-600 text-white hover:bg-purple-700"
                             }`}
                           >
-                            {isRegistered ? "Registered" : "Register"}
+                            {isRegistered ? "Registered" : isFull ? "Event full" : "Register"}
                           </button>
                         </div>
                         {event.imageUrl && (

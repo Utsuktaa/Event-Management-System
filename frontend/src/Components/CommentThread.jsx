@@ -1,11 +1,21 @@
 import { useState } from "react";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDown, ChevronRight, Flag } from "lucide-react";
+import { ChevronDown, ChevronRight, Flag, Trash2 } from "lucide-react";
 import ReportModal from "./ReportModal";
 const API = import.meta.env.VITE_API_URL;
 
 const MAX_DEPTH = 4;
+
+// Decode JWT payload without verification (client-side only)
+function getJwtPayload(token) {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
 
 export default function CommentThread({
   post,
@@ -14,12 +24,23 @@ export default function CommentThread({
   token,
   depth = 0,
   onRefresh,
+  members = [],
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const payload = token ? getJwtPayload(token) : null;
+  const currentUserId = payload?.userId;
+  const isAuthor = currentUserId && post.authorId?._id?.toString() === currentUserId;
+
+  // Find this post's author in the members list for role/position badge
+  const authorMember = members.find(
+    (m) => m.userId?._id?.toString() === post.authorId?._id?.toString()
+  );
 
   const directReplies = allPosts.filter(
     (p) => p.parentId && p.parentId.toString() === post._id.toString()
@@ -44,6 +65,22 @@ export default function CommentThread({
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Delete this post? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      await axios.delete(`${API}/api/clubs/${clubId}/posts/${post._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onRefresh();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete: " + (err.response?.data?.message || err.message));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const indentClass = depth === 0 ? "" : "ml-4 border-l-2 border-purple-100 pl-4";
 
   return (
@@ -56,6 +93,16 @@ export default function CommentThread({
           <span className="text-sm font-medium text-gray-700">
             {post.authorId?.name || "Unknown"}
           </span>
+          {authorMember?.role === "club_admin" && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold">
+              Admin
+            </span>
+          )}
+          {authorMember?.position && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium">
+              {authorMember.position}
+            </span>
+          )}
           <span className="text-xs text-gray-400 ml-auto">
             {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
           </span>
@@ -90,13 +137,25 @@ export default function CommentThread({
             </button>
           )}
 
-          <button
-            onClick={() => setReportOpen(true)}
-            className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-red-500"
-          >
-            <Flag className="w-3 h-3" />
-            Report
-          </button>
+          <div className="ml-auto flex items-center gap-3">
+            {isAuthor && (
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 disabled:opacity-50 transition-colors"
+              >
+                <Trash2 className="w-3 h-3" />
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            )}
+            <button
+              onClick={() => setReportOpen(true)}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500"
+            >
+              <Flag className="w-3 h-3" />
+              Report
+            </button>
+          </div>
         </div>
 
         {replyOpen && (
@@ -129,6 +188,7 @@ export default function CommentThread({
             token={token}
             depth={depth + 1}
             onRefresh={onRefresh}
+            members={members}
           />
         ))}
 

@@ -53,11 +53,22 @@ export default function Events({ clubId }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setRegisteredEvents((prev) => [...prev, eventId]);
+      // Bump local count
+      setEvents((prev) => prev.map((ev) =>
+        ev._id === eventId ? { ...ev, registrationCount: (ev.registrationCount || 0) + 1 } : ev
+      ));
     } catch (err) {
-      if (err.response?.status === 400 || err.response?.status === 409) {
+      const msg = err.response?.data?.message || "";
+      if (err.response?.status === 400 && msg === "Already registered") {
         setRegisteredEvents((prev) => [...prev, eventId]);
+      } else if (err.response?.status === 400 && msg.includes("full")) {
+        // Refresh to get latest counts
+        const res = await axios.get(`${API_BASE}/api/events/club/${clubId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setEvents(res.data || []);
       } else {
-        alert(err.response?.data?.message || "Something went wrong.");
+        alert(msg || "Something went wrong.");
       }
     }
   };
@@ -74,6 +85,10 @@ export default function Events({ clubId }) {
   const renderEventCard = (event, isPast = false) => {
     const isExpanded = expandedEvent === event._id;
     const isRegistered = registeredEvents.includes(event._id);
+    const cap = event.registrationCap;
+    const count = event.registrationCount || 0;
+    const isFull = cap != null && count >= cap;
+    const spotsLeft = cap != null ? cap - count : null;
 
     return (
       <div
@@ -83,7 +98,31 @@ export default function Events({ clubId }) {
         style={isPast ? { opacity: 0.75 } : {}}
       >
         <div className="absolute -top-6 -right-6 w-24 h-24 bg-purple-200 rounded-full opacity-40 pointer-events-none" />
-        <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
+            {event.visibility === "school" ? (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                School Wide
+              </span>
+            ) : (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 border border-purple-200">
+                Club Only
+              </span>
+            )}
+          </div>
+          {cap != null && (
+            <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${
+              isFull
+                ? "bg-red-50 text-red-500 border-red-200"
+                : spotsLeft <= 5
+                  ? "bg-orange-50 text-orange-500 border-orange-200"
+                  : "bg-purple-50 text-purple-600 border-purple-200"
+            }`}>
+              {isFull ? "Full" : `${count}/${cap} spots`}
+            </span>
+          )}
+        </div>
         <div className="flex gap-6 text-sm text-gray-500 mt-2">
           <span className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-purple-400 stroke-[2.5]" />
@@ -102,18 +141,30 @@ export default function Events({ clubId }) {
             <div className="flex-1 flex flex-col gap-2">
               <p className="text-sm text-gray-600">{event.description}</p>
               {!isPast && (
-                <button
-                  disabled={isRegistered}
-                  onClick={(e) => handleRegister(e, event._id, isRegistered)}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-150 ${
-                    isRegistered
-                      ? "bg-purple-100 text-purple-500 cursor-not-allowed"
-                      : "bg-purple-400 text-white hover:bg-purple-500 active:scale-95 shadow-sm hover:shadow-md"
-                  }`}
-                  style={{ width: "fit-content" }}
-                >
-                  {isRegistered ? "You're in!" : "Join the fun"}
-                </button>
+                <>
+                  {cap != null && (
+                    <div className="w-full bg-purple-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${isFull ? "bg-red-400" : "bg-purple-500"}`}
+                        style={{ width: `${Math.min(100, (count / cap) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                  <button
+                    disabled={isRegistered || isFull}
+                    onClick={(e) => handleRegister(e, event._id, isRegistered)}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-150 ${
+                      isRegistered
+                        ? "bg-purple-100 text-purple-500 cursor-not-allowed"
+                        : isFull
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-purple-400 text-white hover:bg-purple-500 active:scale-95 shadow-sm hover:shadow-md"
+                    }`}
+                    style={{ width: "fit-content" }}
+                  >
+                    {isRegistered ? "You're in!" : isFull ? "Event full" : "Join the fun"}
+                  </button>
+                </>
               )}
             </div>
             {event.imageUrl && (

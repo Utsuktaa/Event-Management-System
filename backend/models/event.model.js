@@ -20,6 +20,10 @@ const EventSchema = new Schema(
       type: Number,
       default: 100,
     },
+    registrationCap: {
+      type: Number,
+      default: null, // null = unlimited
+    },
     visibility: {
       type: String,
       enum: ["club", "school"],

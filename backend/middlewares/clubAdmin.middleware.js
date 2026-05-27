@@ -6,7 +6,7 @@ const verifyClubAdmin = async (req, res, next) => {
     const userId = req.user.userId;
     const { clubId } = req.params;
 
-    if (req.user.role === "admin") return next();
+    if (req.user.role === "admin" || req.user.role === "superadmin") return next();
 
     const member = await ClubMember.findOne({ clubId, userId, status: "ACTIVE" });
     if (!member || !hasPermission(member.role, "approve_join_request")) {

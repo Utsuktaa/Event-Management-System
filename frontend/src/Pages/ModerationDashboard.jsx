@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  Calendar,
 } from "lucide-react";
 import { API_BASE } from "../config";
 import { getTokenFromCookies } from "../Utils/auth";
@@ -79,6 +80,34 @@ export default function ModerationDashboard() {
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState(null);
+
+  // Date range filter — default 30 days
+  const today = new Date();
+  const defaultFrom = new Date(today);
+  defaultFrom.setDate(today.getDate() - 30);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const [dateFrom, setDateFrom] = useState(fmt(defaultFrom));
+  const [dateTo, setDateTo] = useState(fmt(today));
+  const [rangePreset, setRangePreset] = useState("30");
+
+  const PRESETS = [
+    { label: "7 days",    value: "7"      },
+    { label: "30 days",   value: "30"     },
+    { label: "90 days",   value: "90"     },
+    { label: "Custom",    value: "custom" },
+  ];
+
+  const applyPreset = (preset) => {
+    setRangePreset(preset);
+    if (preset !== "custom") {
+      const d = new Date();
+      const f = new Date(d);
+      f.setDate(d.getDate() - parseInt(preset, 10));
+      setDateFrom(fmt(f));
+      setDateTo(fmt(d));
+    }
+  };
+
   const LIMIT = 10;
 
   const fetchPosts = useCallback(async () => {
@@ -86,7 +115,7 @@ export default function ModerationDashboard() {
     try {
       const res = await axios.get(`${API_BASE}/api/reports/admin/posts`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: { page, limit: LIMIT, search },
+        params: { page, limit: LIMIT, search, dateFrom, dateTo },
       });
       setPosts(res.data.posts || []);
       setTotal(res.data.total || 0);
@@ -95,7 +124,7 @@ export default function ModerationDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [token, page, search]);
+  }, [token, page, search, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchPosts();
@@ -203,6 +232,53 @@ export default function ModerationDashboard() {
           <p className="text-sm" style={{ color: "#9CA3AF" }}>
             {total} item{total !== 1 ? "s" : ""}
           </p>
+        </div>
+
+        {/* Date range filter */}
+        <div className="flex flex-wrap items-center gap-3 mb-6 p-4 rounded-2xl bg-white border" style={{ borderColor: "rgba(124,58,237,0.12)" }}>
+          <Calendar className="w-4 h-4 text-purple-400 flex-shrink-0" />
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Range:</span>
+          <div className="flex gap-1.5 flex-wrap">
+            {PRESETS.map((p) => (
+              <button
+                key={p.value}
+                onClick={() => { applyPreset(p.value); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                style={rangePreset === p.value
+                  ? { background: "linear-gradient(135deg,#1E3A8A,#7C3AED)", color: "#fff" }
+                  : { background: "rgba(124,58,237,0.07)", color: "#7C3AED" }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          {rangePreset === "custom" && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="date"
+                value={dateFrom}
+                max={dateTo}
+                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg text-xs text-gray-700 outline-none border"
+                style={{ borderColor: "rgba(124,58,237,0.2)" }}
+              />
+              <span className="text-xs text-gray-400">to</span>
+              <input
+                type="date"
+                value={dateTo}
+                min={dateFrom}
+                max={fmt(today)}
+                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg text-xs text-gray-700 outline-none border"
+                style={{ borderColor: "rgba(124,58,237,0.2)" }}
+              />
+            </div>
+          )}
+          {rangePreset !== "custom" && (
+            <span className="text-xs text-gray-400 ml-1">
+              {dateFrom} → {dateTo}
+            </span>
+          )}
         </div>
 
         <div className="rounded-2xl overflow-hidden" style={cardStyle}>

@@ -19,8 +19,12 @@ const ClubMemberSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["member", "club_admin", "vice_president", "president"],
+      enum: ["member", "club_admin"],
       default: "member",
+    },
+    position: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true }

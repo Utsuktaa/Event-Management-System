@@ -3,25 +3,15 @@ const EventRegistration = require("../models/eventRegistration.model");
 const Attendance = require("../models/attendance.model");
 const { awardXP } = require("../utils/gamification");
 
-function isInsideRadius(studentLat, studentLng, event) {
-  const R = 6371000; // radius on earth
+function haversineDistance(studentLat, studentLng, eventLat, eventLng) {
+  const R = 6371000; // Earth radius in metres
   const toRad = (deg) => (deg * Math.PI) / 180;
-
-  const dLat = toRad(event.latitude - studentLat);
-  const dLng = toRad(event.longitude - studentLng);
-
+  const dLat = toRad(eventLat - studentLat);
+  const dLng = toRad(eventLng - studentLng);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(studentLat)) *
-      Math.cos(toRad(event.latitude)) *
-      Math.sin(dLng / 2) ** 2;
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-  console.log("StudentLat:", studentLat, "StudentLng:", studentLng);
-  console.log("EventLat:", event.latitude, "EventLng:", event.longitude);
-  console.log("Distance:", distance, "Radius:", event.attendanceRadius);
-  return distance <= event.attendanceRadius;
+    Math.cos(toRad(studentLat)) * Math.cos(toRad(eventLat)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 exports.markAttendance = async (req, res) => {
@@ -36,87 +26,48 @@ exports.markAttendance = async (req, res) => {
       return res.status(400).json({ message: "Invalid QR token" });
 
     // Registration check
-    const registration = await EventRegistration.findOne({
-      eventId,
-      studentId,
-    });
+    const registration = await EventRegistration.findOne({ eventId, studentId });
     if (!registration)
-      return res
-        .status(403)
-        .json({ message: "You are not registered for this event" });
+      return res.status(403).json({ message: "You are not registered for this event" });
 
-    // Check if attendance already exists
+    // Duplicate attendance check
     const existing = await Attendance.findOne({ eventId, studentId });
     if (existing)
       return res.status(400).json({ message: "Attendance already recorded" });
 
-    // Location check
-    if (lat == null || lng == null) {
-      console.warn("Student location missing. Skipping radius check.");
+    // Location check — skip only if event has no coordinates set
+    if (event.latitude != null && event.longitude != null) {
+      if (lat == null || lng == null) {
+        return res.status(400).json({ message: "Location is required to mark attendance" });
+      }
+      const distance = haversineDistance(
+        parseFloat(lat), parseFloat(lng),
+        event.latitude, event.longitude
+      );
+      const allowedRadius = event.attendanceRadius || 100;
+      console.log(`[attendance] distance=${distance.toFixed(1)}m radius=${allowedRadius}m`);
+      if (distance > allowedRadius) {
+        return res.status(403).json({
+          message: `You are ${Math.round(distance)}m away from the event. Must be within ${allowedRadius}m.`,
+        });
+      }
     } else {
-      const distance = isInsideRadius(lat, lng, event); // returns true/false
-
-      if (!distance)
-        return res
-          .status(403)
-          .json({ message: "You are not inside the event area" });
+      console.warn("[attendance] Event has no coordinates — skipping location check");
     }
 
     await Attendance.create({ eventId, studentId });
-
     await awardXP(studentId, "attend_event");
     res.json({ message: "Attendance marked successfully" });
   } catch (err) {
     console.error("markAttendance error:", err);
-    //res.status(500).json({ message: "Attendance failed" });
+    res.status(500).json({ message: "Attendance failed" });
   }
 };
-
-function isInsideRadius(studentLat, studentLng, event) {
-  const R = 6371000;
-  const toRad = (deg) => (deg * Math.PI) / 180;
-
-  if (!event.latitude || !event.longitude) {
-    console.warn("Event latitude or longitude missing");
-    return false;
-  }
-
-  const dLat = toRad(event.latitude - studentLat);
-  const dLng = toRad(event.longitude - studentLng);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(studentLat)) *
-      Math.cos(toRad(event.latitude)) *
-      Math.sin(dLng / 2) ** 2;
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-
-  console.log(
-    "StudentLat:",
-    studentLat,
-    "StudentLng:",
-    studentLng,
-    "EventLat:",
-    event.latitude,
-    "EventLng:",
-    event.longitude,
-    "Distance:",
-    distance,
-    "Radius:",
-    event.attendanceRadius,
-  );
-
-  return distance <= (event.attendanceRadius || 100);
-}
 
 exports.getStudentAttendance = async (req, res) => {
   try {
     const studentId = req.user.userId;
-    const attendanceRecords = await Attendance.find({ studentId }).populate(
-      "eventId",
-    );
+    const attendanceRecords = await Attendance.find({ studentId }).populate("eventId");
     res.json(attendanceRecords);
   } catch (err) {
     console.error(err);

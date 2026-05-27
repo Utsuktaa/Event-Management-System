@@ -1,0 +1,83 @@
+[33mcd11438[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: rebase (finish): returning to refs/heads/main
+[33mcd11438[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: rebase (start): checkout HEAD~3
+[33mf852bc6[m HEAD@{2}: commit: Edge case
+[33mcd11438[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{3}: rebase (finish): returning to refs/heads/main
+[33mcd11438[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{4}: rebase (pick): fix stats
+[33m74ecd02[m HEAD@{5}: rebase (start): checkout HEAD~20
+[33m519fc95[m HEAD@{6}: commit: fix stats
+[33m51796ad[m HEAD@{7}: commit: fix stats
+[33m980625e[m HEAD@{8}: commit: fix stats
+[33m4ef33ac[m HEAD@{9}: commit: fix stats
+[33maf5f266[m HEAD@{10}: commit: fix stats
+[33mce75089[m HEAD@{11}: commit: fix stats
+[33me70d368[m HEAD@{12}: commit: fix stats
+[33m8f09c5f[m HEAD@{13}: commit: fix stats
+[33m4a78de9[m HEAD@{14}: commit: fix stats
+[33m74ca0c2[m HEAD@{15}: reset: moving to origin/main
+[33m74ca0c2[m HEAD@{16}: reset: moving to origin/main
+[33m74ca0c2[m HEAD@{17}: reset: moving to HEAD
+[33m74ca0c2[m HEAD@{18}: reset: moving to origin/main
+[33m74ca0c2[m HEAD@{19}: reset: moving to HEAD
+[33m74ca0c2[m HEAD@{20}: commit: fix stats
+[33mcae2a82[m HEAD@{21}: commit: fix stats
+[33m0274515[m HEAD@{22}: commit: fix stats
+[33m8ddeb85[m HEAD@{23}: commit: fix stats
+[33m73883ae[m HEAD@{24}: commit: fix stats
+[33ma98e58f[m HEAD@{25}: commit: fix stats
+[33m249aaf0[m HEAD@{26}: commit: fix stats
+[33me58b1a6[m HEAD@{27}: commit: fix stats
+[33m182b835[m HEAD@{28}: commit: fix stats
+[33m74ecd02[m HEAD@{29}: reset: moving to origin/main
+[33m74ecd02[m HEAD@{30}: reset: moving to HEAD
+[33m74ecd02[m HEAD@{31}: reset: moving to origin/main
+[33m74ecd02[m HEAD@{32}: reset: moving to HEAD
+[33m74ecd02[m HEAD@{33}: commit: Stats
+[33mf5cbc71[m HEAD@{34}: commit: fix react routing on vercel
+[33m7c79d27[m HEAD@{35}: commit: Fix cors issue
+[33m44a6e4e[m HEAD@{36}: commit: Fix URLs
+[33m71edd56[m HEAD@{37}: commit: Fix issue with api
+[33m39f0083[m HEAD@{38}: commit: fix for render
+[33m95c0d7c[m HEAD@{39}: commit: Shifted Nav Bar
+[33mdf45987[m HEAD@{40}: checkout: moving from main to main
+[33mdf45987[m HEAD@{41}: merge leader-points: Fast-forward
+[33m232ddd9[m HEAD@{42}: checkout: moving from leader-points to main
+[33mdf45987[m HEAD@{43}: reset: moving to HEAD
+[33mdf45987[m HEAD@{44}: commit: Leaderboard
+[33md8d73cb[m HEAD@{45}: checkout: moving from activity-timeline to leader-points
+[33md8d73cb[m HEAD@{46}: commit: Activity Timeline
+[33m232ddd9[m HEAD@{47}: checkout: moving from main to activity-timeline
+[33m232ddd9[m HEAD@{48}: merge layout: Merge made by the 'ort' strategy.
+[33m338f290[m HEAD@{49}: checkout: moving from main to main
+[33m338f290[m HEAD@{50}: merge club-fixes: Merge made by the 'ort' strategy.
+[33me56675f[m HEAD@{51}: checkout: moving from main to main
+[33me56675f[m HEAD@{52}: checkout: moving from main to main
+[33me56675f[m HEAD@{53}: merge moderation-feature: Merge made by the 'ort' strategy.
+[33m5ac3043[m HEAD@{54}: checkout: moving from main to main
+[33m5ac3043[m HEAD@{55}: merge analytics-feature: Merge made by the 'ort' strategy.
+[33mb761003[m HEAD@{56}: checkout: moving from main to main
+[33mb761003[m HEAD@{57}: commit (amend): Add visualization and analysis
+[33m82ae1fc[m HEAD@{58}: checkout: moving from main to main
+[33m82ae1fc[m HEAD@{59}: merge analytics-feature: Fast-forward
+[33mcbc684e[m HEAD@{60}: checkout: moving from analytics-feature to main
+[33m82ae1fc[m HEAD@{61}: checkout: moving from layout to analytics-feature
+[33m7f418cc[m[33m ([m[1;32mlayout[m[33m)[m HEAD@{62}: commit: Fix colors and font
+[33m58325db[m HEAD@{63}: checkout: moving from club-fixes to layout
+[33m58325db[m HEAD@{64}: commit: Fix Club Roles
+[33m22abdcf[m HEAD@{65}: checkout: moving from moderation-feature to club-fixes
+[33m22abdcf[m HEAD@{66}: commit: Add Moderation for admins
+[33m82ae1fc[m HEAD@{67}: checkout: moving from analytics-feature to moderation-feature
+[33m82ae1fc[m HEAD@{68}: commit: Integrates Analytics feature
+[33mcbc684e[m HEAD@{69}: checkout: moving from main to analytics-feature
+[33mcbc684e[m HEAD@{70}: commit: Update Hero Layout
+[33m5ef661c[m HEAD@{71}: commit: User dashboard design changes
+[33mce2f06e[m HEAD@{72}: commit: Fix issue with attendance
+[33m2c480d2[m HEAD@{73}: commit (merge): Merge branch 'main' of https://github.com/Utsuktaa/Event-Management-System
+[33m677c5db[m HEAD@{74}: commit: Add visualization for admins
+[33m45aa0be[m HEAD@{75}: commit: Extend Club Document Sharing
+[33m1fdc351[m HEAD@{76}: commit: add club discussion functionality
+[33m1df1e58[m HEAD@{77}: commit: Implement Club Membership Access Control
+[33m3d954f0[m HEAD@{78}: commit: Extend Club Access
+[33me34f014[m HEAD@{79}: commit: Adds Event Management Feature
+[33m6e7397f[m HEAD@{80}: commit: Adds admin dashboard
+[33m6be586b[m HEAD@{81}: Branch: renamed refs/heads/master to refs/heads/main
+[33m6be586b[m HEAD@{83}: commit (initial): Auth integration

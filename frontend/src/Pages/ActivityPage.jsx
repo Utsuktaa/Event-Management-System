@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Calendar, CheckCircle, Users, Activity, Clock, Star, MapPin, Inbox } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle,
+  Users,
+  Activity,
+  Clock,
+  Star,
+  MapPin,
+  Inbox,
+} from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 import { API_BASE } from "../config";
-import Sidebar from "../Components/Sidebar";
+import PageLayout from "../Components/PageLayout";
 
 const activityLabel = {
   event_joined: "Joined event",
@@ -72,7 +81,9 @@ export default function ActivityPage() {
         const res = await axios.get(`${API_BASE}/api/events/registrations`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setRegisteredEvents(res.data.events?.map((e) => e?._id).filter(Boolean) || []);
+        setRegisteredEvents(
+          res.data.events?.map((e) => e?._id).filter(Boolean) || [],
+        );
       } catch (err) {
         console.error(err);
       }
@@ -87,11 +98,12 @@ export default function ActivityPage() {
     e.stopPropagation();
     const token = getTokenFromCookies();
     if (!token) return;
+
     try {
       await axios.post(
         `${API_BASE}/api/events/${eventId}/register`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       setRegisteredEvents((prev) => [...prev, eventId]);
     } catch (err) {
@@ -104,147 +116,156 @@ export default function ActivityPage() {
   };
 
   return (
-    <div
-      className="min-h-screen font-sans flex"
-      style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}
-    >
-      <Sidebar role="user" />
-      <div className="flex-1 flex flex-col ml-56">
-        <header className="px-8 py-4 border-b" style={{ background: "rgba(255,255,255,0.92)", borderColor: "rgba(124,58,237,0.08)" }}>
-          <h1 className="text-lg font-semibold" style={{ color: "#1E3A8A" }}>Activity Timeline</h1>
-        </header>
-
-        <main className="flex-1 px-6 py-10">
-          <div className="max-w-[900px] mx-auto space-y-10">
-
-            <section className="space-y-4">
-              {loadingActivity ? (
-                <p className="text-sm text-gray-500">Loading your activity…</p>
-              ) : activity.length === 0 ? (
-                <div className="flex flex-col items-center py-10 gap-3">
-                  <Inbox className="w-10 h-10 text-purple-200 stroke-[1.5]" />
-                  <p className="text-gray-500 text-sm">No recent activity. Join an event or club to get started.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {activity.map((item, i) => {
-                    const Icon = activityIcon[item.type] || Activity;
-                    return (
-                      <div
-                        key={i}
-                        className="bg-white rounded-xl border border-purple-100 p-4 flex items-center gap-4"
-                      >
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt=""
-                            loading="lazy"
-                            className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-5 h-5 text-purple-400 stroke-[2.5]" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-purple-400 uppercase tracking-wide">
-                            {activityLabel[item.type] || item.type}
-                          </p>
-                          <p className="text-sm font-semibold text-gray-900 truncate">{item.title}</p>
+    <PageLayout title="Activity Timeline" role="user" footer={false}>
+      <div className="px-6 py-10">
+        <div className="max-w-[900px] mx-auto space-y-10">
+          <section className="space-y-4">
+            {loadingActivity ? (
+              <p className="text-sm text-gray-500">Loading your activity…</p>
+            ) : activity.length === 0 ? (
+              <div className="flex flex-col items-center py-10 gap-3">
+                <Inbox className="w-10 h-10 text-purple-200 stroke-[1.5]" />
+                <p className="text-gray-500 text-sm">
+                  No recent activity. Join an event or club to get started.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {activity.map((item, i) => {
+                  const Icon = activityIcon[item.type] || Activity;
+                  return (
+                    <div
+                      key={i}
+                      className="bg-white rounded-xl border border-purple-100 p-4 flex items-center gap-4"
+                    >
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt=""
+                          loading="lazy"
+                          className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                          <Icon className="w-5 h-5 text-purple-400 stroke-[2.5]" />
                         </div>
-                        <span className="text-xs text-gray-400 flex-shrink-0 flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-purple-300 stroke-[2.5]" />
-                          {relativeTime(item.date)}
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-purple-400 uppercase tracking-wide">
+                          {activityLabel[item.type] || item.type}
+                        </p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {item.title}
+                        </p>
+                      </div>
+
+                      <span className="text-xs text-gray-400 flex-shrink-0 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-purple-300 stroke-[2.5]" />
+                        {relativeTime(item.date)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section className="bg-white rounded-xl p-6 border border-purple-100 space-y-5">
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Star className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+              Recommended for You
+            </h2>
+
+            {loadingRec ? (
+              <p className="text-sm text-gray-500">Finding events for you…</p>
+            ) : recommended.length === 0 ? (
+              <div className="flex flex-col items-center py-10 gap-3">
+                <Star className="w-10 h-10 text-purple-200 stroke-[1.5]" />
+                <p className="text-gray-500 text-sm">
+                  No recommendations right now.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recommended.map((event) => {
+                  const isRegistered = registeredEvents.includes(event._id);
+                  const isExpanded = expandedEvent === event._id;
+
+                  return (
+                    <div
+                      key={event._id}
+                      onClick={() =>
+                        setExpandedEvent(isExpanded ? null : event._id)
+                      }
+                      className="bg-white rounded-xl border border-purple-100 hover:border-purple-300 hover:shadow-sm transition-all duration-150 p-5 cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base font-semibold text-gray-900">
+                          {event.title}
+                        </h3>
+
+                        <span className="flex items-center gap-1 text-xs font-semibold text-purple-500 bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 flex-shrink-0">
+                          <Star className="w-3 h-3 stroke-[2.5]" />
+                          For you
                         </span>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
 
-            <section className="bg-white rounded-xl p-6 border border-purple-100 space-y-5">
-              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Star className="w-4 h-4 text-purple-400 stroke-[2.5]" />
-                Recommended for You
-              </h2>
+                      <div className="flex gap-6 text-sm text-gray-500 mt-2">
+                        <span className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                          {new Date(event.date).toLocaleDateString()}
+                        </span>
 
-              {loadingRec ? (
-                <p className="text-sm text-gray-500">Finding events for you…</p>
-              ) : recommended.length === 0 ? (
-                <div className="flex flex-col items-center py-10 gap-3">
-                  <Star className="w-10 h-10 text-purple-200 stroke-[1.5]" />
-                  <p className="text-gray-500 text-sm">No recommendations right now.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {recommended.map((event) => {
-                    const isRegistered = registeredEvents.includes(event._id);
-                    const isExpanded = expandedEvent === event._id;
-                    return (
-                      <div
-                        key={event._id}
-                        onClick={() => setExpandedEvent(isExpanded ? null : event._id)}
-                        className="bg-white rounded-xl border border-purple-100 hover:border-purple-300 hover:shadow-sm transition-all duration-150 p-5 cursor-pointer"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-base font-semibold text-gray-900">{event.title}</h3>
-                          <span className="flex items-center gap-1 text-xs font-semibold text-purple-500 bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 flex-shrink-0">
-                            <Star className="w-3 h-3 stroke-[2.5]" />
-                            For you
-                          </span>
-                        </div>
-                        <div className="flex gap-6 text-sm text-gray-500 mt-2">
+                        {event.location && (
                           <span className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-purple-400 stroke-[2.5]" />
-                            {new Date(event.date).toLocaleDateString()}
+                            <MapPin className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                            {event.location}
                           </span>
-                          {event.location && (
-                            <span className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-purple-400 stroke-[2.5]" />
-                              {event.location}
-                            </span>
-                          )}
-                        </div>
-                        {isExpanded && (
-                          <div className="mt-4 flex flex-col sm:flex-row gap-4">
-                            <div className="flex-1 flex flex-col gap-2">
-                              <p className="text-sm text-gray-600">{event.description}</p>
-                              <button
-                                disabled={isRegistered}
-                                onClick={(e) => handleRegister(e, event._id)}
-                                className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-150 ${
-                                  isRegistered
-                                    ? "bg-purple-100 text-purple-500 cursor-not-allowed"
-                                    : "bg-purple-400 text-white hover:bg-purple-500 active:scale-95 shadow-sm hover:shadow-md"
-                                }`}
-                                style={{ width: "fit-content" }}
-                              >
-                                {isRegistered ? "Registered" : "Join the fun"}
-                              </button>
-                            </div>
-                            {event.imageUrl && (
-                              <div className="flex-shrink-0 self-start">
-                                <img
-                                  src={event.imageUrl}
-                                  alt={event.title}
-                                  loading="lazy"
-                                  className="w-[4.5cm] h-[6.5cm] object-cover rounded-2xl"
-                                />
-                              </div>
-                            )}
-                          </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
 
-          </div>
-        </main>
+                      {isExpanded && (
+                        <div className="mt-4 flex flex-col sm:flex-row gap-4">
+                          <div className="flex-1 flex flex-col gap-2">
+                            <p className="text-sm text-gray-600">
+                              {event.description}
+                            </p>
+
+                            <button
+                              disabled={isRegistered}
+                              onClick={(e) => handleRegister(e, event._id)}
+                              className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-150 ${
+                                isRegistered
+                                  ? "bg-purple-100 text-purple-500 cursor-not-allowed"
+                                  : "bg-purple-400 text-white hover:bg-purple-500 active:scale-95 shadow-sm hover:shadow-md"
+                              }`}
+                              style={{ width: "fit-content" }}
+                            >
+                              {isRegistered ? "Registered" : "Join the fun"}
+                            </button>
+                          </div>
+
+                          {event.imageUrl && (
+                            <div className="flex-shrink-0 self-start">
+                              <img
+                                src={event.imageUrl}
+                                alt={event.title}
+                                loading="lazy"
+                                className="w-[4.5cm] h-[6.5cm] object-cover rounded-2xl"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

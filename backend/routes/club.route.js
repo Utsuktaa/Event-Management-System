@@ -12,6 +12,8 @@ router.get("/:clubId", verifyToken, verifyClubAccess, clubController.getClubDash
 
 router.post("/:clubId/join", verifyToken, clubController.joinClub);
 
+router.delete("/:clubId/leave", verifyToken, clubController.leaveClub);
+
 router.get("/:clubId/members", verifyToken, verifyClubAccess, clubController.getClubMembers);
 
 router.get("/:clubId/requests", verifyToken, verifyClubAdmin, clubController.getPendingJoinRequests);
@@ -21,6 +23,7 @@ router.patch("/:clubId/requests/:memberId/approve", verifyToken, verifyClubAdmin
 router.patch("/:clubId/requests/:memberId/reject", verifyToken, verifyClubAdmin, clubController.rejectJoinRequest);
 
 router.patch("/:clubId/members/:memberId/role", verifyToken, verifyClubAccess, clubController.assignRole);
+router.patch("/:clubId/members/:memberId/position", verifyToken, verifyClubAccess, clubController.updateMemberPosition);
 
 router.patch("/:clubId/policy", verifyToken, verifyClubAccess, clubController.updateJoinPolicy);
 

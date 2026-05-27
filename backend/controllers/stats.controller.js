@@ -3,7 +3,7 @@ const Badge = require("../models/badge.model");
 const Attendance = require("../models/attendance.model");
 const ClubMember = require("../models/ClubMember");
 const EventRegistration = require("../models/eventRegistration.model");
-const { getLevelFromXP } = require("../utils/gamification");
+const { getLevelFromXP, ensureBadgesSeeded, BADGE_DEFINITIONS } = require("../utils/gamification");
 
 exports.getMyStats = async (req, res) => {
   try {
@@ -120,24 +120,8 @@ exports.getLeaderboard = async (req, res) => {
 
 exports.seedBadges = async (req, res) => {
   try {
-    const badges = [
-      { name: "First Step", description: "Join your first club", icon: "🌱", conditionType: "first_club", conditionValue: 1 },
-      { name: "Club Hopper", description: "Join 3 clubs", icon: "🎪", conditionType: "clubs_joined", conditionValue: 3 },
-      { name: "Event Goer", description: "Attend your first event", icon: "🎟️", conditionType: "events_attended", conditionValue: 1 },
-      { name: "Regular", description: "Attend 5 events", icon: "⭐", conditionType: "events_attended", conditionValue: 5 },
-      { name: "Dedicated", description: "Attend 10 events", icon: "🏅", conditionType: "events_attended", conditionValue: 10 },
-      { name: "Century", description: "Reach 100 XP", icon: "💯", conditionType: "xp", conditionValue: 100 },
-      { name: "Rising Star", description: "Reach 300 XP", icon: "🌟", conditionType: "xp", conditionValue: 300 },
-      { name: "Legend", description: "Reach 500 XP", icon: "🏆", conditionType: "xp", conditionValue: 500 },
-      { name: "On Fire", description: "Maintain a 7-day streak", icon: "🔥", conditionType: "streak", conditionValue: 7 },
-      { name: "Unstoppable", description: "Maintain a 14-day streak", icon: "⚡", conditionType: "streak", conditionValue: 14 },
-    ];
-
-    for (const badge of badges) {
-      await Badge.findOneAndUpdate({ name: badge.name }, badge, { upsert: true, new: true });
-    }
-
-    res.json({ message: "Badges seeded", count: badges.length });
+    await ensureBadgesSeeded();
+    res.json({ message: "Badges seeded", count: BADGE_DEFINITIONS.length });
   } catch (err) {
     res.status(500).json({ message: "Failed to seed badges" });
   }

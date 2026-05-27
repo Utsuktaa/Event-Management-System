@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Pin,
@@ -72,15 +73,14 @@ function PollCard({
   canConvert,
   onRefresh,
   showToast,
+  navigate,
+  members = [],
 }) {
   const [selected, setSelected] = useState(poll.userVotes || []);
   const [voting, setVoting] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [commenting, setCommenting] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [convertOpen, setConvertOpen] = useState(false);
-  const [eventForm, setEventForm] = useState(null);
-  const [converting, setConverting] = useState(false);
   const [expiryOverride, setExpiryOverride] = useState("");
 
   useEffect(() => {
@@ -209,41 +209,25 @@ function PollCard({
         {},
         { headers },
       );
-      setEventForm({
-        title: res.data.eventDraft.title,
-        description: res.data.eventDraft.description,
-        date: new Date(res.data.eventDraft.date).toISOString().slice(0, 16),
-        location: "",
+      const draft = res.data.eventDraft;
+      navigate(`/clubs/${clubId}`, {
+        state: {
+          prefillEvent: {
+            title: draft.title || "",
+            description: draft.description || "",
+            date: draft.date ? new Date(draft.date).toISOString().slice(0, 10) : "",
+          },
+          activeTab: "Manage",
+        },
       });
-      setConvertOpen(true);
     } catch (err) {
       showToast(err.response?.data?.message || "Cannot convert poll", "error");
     }
   };
 
-  const handleConvertSubmit = async (e) => {
-    e.preventDefault();
-    setConverting(true);
-    try {
-      await axios.patch(
-        `${API_BASE}/api/clubs/${clubId}/polls/${poll._id}/convert-to-event`,
-        { createEvent: true, ...eventForm },
-        { headers },
-      );
-      showToast("Event created from poll!", "success");
-      setConvertOpen(false);
-      onRefresh();
-    } catch (err) {
-      showToast(err.response?.data?.message || "Failed to create event", "error");
-    } finally {
-      setConverting(false);
-    }
-  };
-
   return (
-    <>
-      <div
-        className={`relative bg-white rounded-3xl border shadow-sm hover:shadow-lg transition-all duration-150 p-6 overflow-hidden ${
+    <div
+      className={`relative bg-white rounded-3xl border shadow-sm hover:shadow-lg transition-all duration-150 p-6 overflow-hidden ${
           poll.pinned ? "border-purple-400 ring-1 ring-purple-200" : "border-purple-200"
         } ${poll.isClosed ? "opacity-80" : ""}`}
       >
@@ -281,6 +265,19 @@ function PollCard({
               {poll.createdBy?.name?.[0]?.toUpperCase() || "?"}
             </div>
             {poll.createdBy?.name || "Unknown"}
+            {(() => {
+              const m = members.find((m) => m.userId?._id?.toString() === poll.createdBy?._id?.toString());
+              return m ? (
+                <>
+                  {m.role === "club_admin" && (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold text-[10px]">Admin</span>
+                  )}
+                  {m.position && (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium text-[10px]">{m.position}</span>
+                  )}
+                </>
+              ) : null;
+            })()}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-purple-400" />
@@ -475,6 +472,19 @@ function PollCard({
                   <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-xs font-medium text-gray-700">{c.authorId?.name || "Unknown"}</span>
+                      {(() => {
+                        const m = members.find((m) => m.userId?._id?.toString() === c.authorId?._id?.toString());
+                        return m ? (
+                          <>
+                            {m.role === "club_admin" && (
+                              <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold text-[10px]">Admin</span>
+                            )}
+                            {m.position && (
+                              <span className="px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-medium text-[10px]">{m.position}</span>
+                            )}
+                          </>
+                        ) : null;
+                      })()}
                       <span className="text-[10px] text-gray-400">
                         {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
                       </span>
@@ -503,58 +513,6 @@ function PollCard({
           </div>
         )}
       </div>
-
-      {convertOpen && eventForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
-            <button
-              onClick={() => setConvertOpen(false)}
-              className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-            <h3 className="text-lg font-semibold text-blue-900 mb-1">Create Event from Poll</h3>
-            <p className="text-xs text-gray-500 mb-4">Winning option pre-filled as event title</p>
-            <form onSubmit={handleConvertSubmit} className="space-y-3">
-              <input
-                value={eventForm.title}
-                onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                placeholder="Event Title"
-                required
-                className={inputCls}
-              />
-              <textarea
-                value={eventForm.description}
-                onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
-                rows={3}
-                placeholder="Description"
-                className={`${inputCls} resize-none`}
-              />
-              <input
-                type="datetime-local"
-                value={eventForm.date}
-                onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
-                required
-                className={inputCls}
-              />
-              <input
-                value={eventForm.location}
-                onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
-                placeholder="Location (optional)"
-                className={inputCls}
-              />
-              <button
-                type="submit"
-                disabled={converting}
-                className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-purple-700 hover:bg-purple-800 disabled:opacity-50"
-              >
-                {converting ? "Creating..." : "Create Event"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </>
   );
 }
 
@@ -564,6 +522,8 @@ export default function Polls({ clubId, token, permissions = [] }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+  const navigate = useNavigate();
+  const [members, setMembers] = useState([]);
 
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
@@ -595,11 +555,23 @@ export default function Polls({ clubId, token, permissions = [] }) {
     }
   }, [clubId, token]);
 
+  const fetchMembers = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/clubs/${clubId}/members`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMembers(res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [clubId, token]);
+
   useEffect(() => {
     fetchPolls();
+    fetchMembers();
     const interval = setInterval(fetchPolls, 60000);
     return () => clearInterval(interval);
-  }, [fetchPolls]);
+  }, [fetchPolls, fetchMembers]);
 
   const resetForm = () => {
     setQuestion("");
@@ -805,6 +777,8 @@ export default function Polls({ clubId, token, permissions = [] }) {
               canConvert={canConvert}
               onRefresh={fetchPolls}
               showToast={showToast}
+              navigate={navigate}
+              members={members}
             />
           ))}
         </div>

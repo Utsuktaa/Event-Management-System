@@ -58,3 +58,44 @@ exports.getClubDocuments = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch documents" });
   }
 };
+
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const userId = req.user.userId;
+
+    const doc = await Document.findById(documentId);
+    if (!doc) return res.status(404).json({ error: "Document not found" });
+
+    // Only club admins (president, vice_president, club_admin) or platform admins can delete
+    if (req.user.role !== "admin" && req.user.role !== "superadmin") {
+      const ClubMember = require("../models/ClubMember");
+      const { hasPermission } = require("../utils/permissions");
+      const membership = await ClubMember.findOne({
+        clubId: doc.club,
+        userId,
+        status: "ACTIVE",
+      });
+      if (!membership || !hasPermission(membership.role, "delete_post")) {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
+    }
+
+    // Extract the storage path from the public URL
+    const urlParts = doc.url.split("/documents/");
+    if (urlParts.length === 2) {
+      const filePath = "documents/" + urlParts[1];
+      await supabase.storage.from("documents").remove([filePath]);
+    }
+
+    // Remove from Club.documents array
+    await Club.findByIdAndUpdate(doc.club, { $pull: { documents: doc._id } });
+
+    await Document.findByIdAndDelete(documentId);
+
+    res.json({ message: "Document deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete document" });
+  }
+};

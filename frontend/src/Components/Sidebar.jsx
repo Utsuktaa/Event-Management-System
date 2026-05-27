@@ -1,23 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
 import {
-  House,
-  Users,
-  LogOut,
-  Settings,
-  Calendar,
-  Activity,
-  Shield,
-  BarChart2,
-  Flag,
-  FileText,
-  ClipboardList,
-  Sparkles,
+  House, Users, LogOut, UserCircle, Calendar, Activity,
+  Shield, BarChart2, Flag, FileText, ClipboardList, Sparkles,
 } from "lucide-react";
-import { clearAuthCookies, getTokenFromCookies } from "../Utils/auth";
+import { clearAuthCookies } from "../Utils/auth";
 import Logo from "./Logo";
-import { API_BASE } from "../config";
 
 const userGroups = [
   {
@@ -51,7 +39,6 @@ const adminGroups = [
     items: [
       { icon: BarChart2, label: "Attendance",    path: "/attendance-analytics" },
       { icon: Flag,      label: "Moderation",    path: "/moderation" },
-      { icon: FileText,  label: "Reports",       path: "/reports" },
     ],
   },
 ];
@@ -59,21 +46,7 @@ const adminGroups = [
 export default function Sidebar({ role = "user" }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [xp, setXp] = useState(null);
-  const [streak, setStreak] = useState(null);
-
-  useEffect(() => {
-    if (role !== "user") return;
-    const token = getTokenFromCookies();
-    if (!token) return;
-    axios
-      .get(`${API_BASE}/api/stats/navbar`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => {
-        setXp(res.data.xp ?? 0);
-        setStreak(res.data.streak ?? 0);
-      })
-      .catch(() => {});
-  }, [role, location.pathname]);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
 
   const handleLogout = () => {
     clearAuthCookies();
@@ -84,35 +57,16 @@ export default function Sidebar({ role = "user" }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside
-      className="fixed top-0 left-0 h-full w-56 flex flex-col z-50"
-      style={{
-        background: "#ffffff",
-        borderRight: "1px solid rgba(124,58,237,0.12)",
-      }}
-    >
-      <div className="px-5 py-5 border-b" style={{ borderColor: "rgba(124,58,237,0.10)" }}>
+    <>
+    <aside className="fixed top-0 left-0 h-full w-56 flex flex-col z-50 bg-white border-r border-purple-100">
+      <div className="px-5 py-5 border-b border-purple-100">
         <Logo />
       </div>
-
-      {role === "user" && xp !== null && (
-        <div
-          className="mx-3 mt-3 px-3 py-2 rounded-xl flex items-center justify-between gap-2"
-          style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(167,139,250,0.12) 100%)", border: "1px solid rgba(124,58,237,0.15)" }}
-        >
-          <span className="text-xs font-bold" style={{ color: "#7C3AED" }}>
-            🔥 {xp} XP
-          </span>
-          <span className="text-xs font-semibold" style={{ color: "#6D28D9" }}>
-            ⚡ {streak}d
-          </span>
-        </div>
-      )}
 
       <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="px-3 mb-1 text-xs font-bold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
+            <p className="px-3 mb-1 text-xs font-bold uppercase tracking-wider text-gray-400">
               {group.label}
             </p>
             <div className="space-y-0.5">
@@ -122,33 +76,17 @@ export default function Sidebar({ role = "user" }) {
                   <button
                     key={path}
                     onClick={() => navigate(path)}
-                    className="w-full flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left"
-                    style={
+                    className={`w-full flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition-colors text-left ${
                       active
-                        ? {
-                            background: "rgba(124,58,237,0.10)",
-                            color: "#7C3AED",
-                            borderLeft: "3px solid #7C3AED",
-                            paddingLeft: "calc(0.75rem - 3px)",
-                            paddingRight: "0.75rem",
-                          }
-                        : {
-                            color: "#6B7280",
-                            paddingLeft: "0.75rem",
-                            paddingRight: "0.75rem",
-                          }
-                    }
+                        ? "bg-purple-100 text-purple-700 border-l-[3px] border-purple-600 pl-[calc(0.75rem-3px)]"
+                        : "text-gray-500 hover:bg-gray-50"
+                    }`}
                   >
                     <Icon
-                      className="flex-shrink-0"
-                      style={{
-                        width: "1rem",
-                        height: "1rem",
-                        strokeWidth: active ? 2.5 : 1.75,
-                        color: active ? "#7C3AED" : "#9CA3AF",
-                      }}
+                      className={`flex-shrink-0 w-4 h-4 ${active ? "text-purple-600" : "text-gray-400"}`}
+                      strokeWidth={active ? 2.5 : 1.75}
                     />
-                    <span style={{ fontWeight: active ? 600 : 500 }}>{label}</span>
+                    <span className={active ? "font-semibold" : "font-medium"}>{label}</span>
                   </button>
                 );
               })}
@@ -157,50 +95,71 @@ export default function Sidebar({ role = "user" }) {
         ))}
       </nav>
 
-      <div className="px-3 py-3 border-t space-y-0.5" style={{ borderColor: "rgba(124,58,237,0.10)" }}>
-        <p className="px-3 mb-1 text-xs font-bold uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
-          Account
-        </p>
-        {[
-          { icon: Settings, label: "Settings", path: "/settings", onClick: () => navigate("/settings") },
-          { icon: LogOut,   label: "Logout",   path: null,         onClick: handleLogout, danger: true },
-        ].map(({ icon: Icon, label, path, onClick, danger }) => {
+      <div className="px-3 py-3 border-t border-purple-100 space-y-0.5">
+        <p className="px-3 mb-1 text-xs font-bold uppercase tracking-wider text-gray-400">Account</p>
+        {(role === "admin"
+          ? [
+              { icon: LogOut, label: "Logout", path: null, onClick: () => setLogoutConfirm(true), danger: true },
+            ]
+          : [
+              { icon: UserCircle, label: "Profile", path: "/profile", onClick: () => navigate("/profile"), danger: false },
+              { icon: LogOut, label: "Logout", path: null, onClick: () => setLogoutConfirm(true), danger: true },
+            ]
+        ).map(({ icon: Icon, label, path, onClick, danger }) => {
           const active = path ? isActive(path) : false;
           return (
             <button
               key={label}
               onClick={onClick}
-              className="w-full flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left"
-              style={
+              className={`w-full flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition-colors text-left ${
                 active
-                  ? {
-                      background: "rgba(124,58,237,0.10)",
-                      color: "#7C3AED",
-                      borderLeft: "3px solid #7C3AED",
-                      paddingLeft: "calc(0.75rem - 3px)",
-                      paddingRight: "0.75rem",
-                    }
-                  : {
-                      color: danger ? "#DC2626" : "#6B7280",
-                      paddingLeft: "0.75rem",
-                      paddingRight: "0.75rem",
-                    }
-              }
+                  ? "bg-purple-100 text-purple-700 border-l-[3px] border-purple-600 pl-[calc(0.75rem-3px)]"
+                  : danger
+                    ? "text-red-600 hover:bg-red-50"
+                    : "text-gray-500 hover:bg-gray-50"
+              }`}
             >
               <Icon
-                className="flex-shrink-0"
-                style={{
-                  width: "1rem",
-                  height: "1rem",
-                  strokeWidth: active ? 2.5 : 1.75,
-                  color: active ? "#7C3AED" : danger ? "#DC2626" : "#9CA3AF",
-                }}
+                className={`flex-shrink-0 w-4 h-4 ${active ? "text-purple-600" : danger ? "text-red-500" : "text-gray-400"}`}
+                strokeWidth={active ? 2.5 : 1.75}
               />
-              <span style={{ fontWeight: active ? 600 : 500 }}>{label}</span>
+              <span className={active ? "font-semibold" : "font-medium"}>{label}</span>
             </button>
           );
         })}
       </div>
     </aside>
+
+    {logoutConfirm && (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30"
+        onClick={() => setLogoutConfirm(false)}
+      >
+        <div
+          className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-red-100"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 className="text-base font-bold text-gray-900 mb-2">Log out?</h3>
+          <p className="text-sm text-gray-500 mb-5">
+            You'll be signed out and redirected to the login page.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setLogoutConfirm(false)}
+              className="flex-1 py-2 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

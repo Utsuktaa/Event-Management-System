@@ -3,7 +3,7 @@ import axios from "axios";
 import { Trophy, Medal, Award } from "lucide-react";
 import { getTokenFromCookies } from "../Utils/auth";
 import { API_BASE } from "../config";
-import Sidebar from "../Components/Sidebar";
+import PageLayout from "../Components/PageLayout";
 
 const rankIcon = (rank) => {
   if (rank === 1) return <Trophy className="w-4 h-4 text-yellow-500 stroke-[2.5]" />;
@@ -36,18 +36,9 @@ export default function LeaderboardPage() {
   const currentUserIndex = leaderboard.findIndex((u) => u.userId === currentUserId);
 
   return (
-    <div
-      className="min-h-screen font-sans flex"
-      style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}
-    >
-      <Sidebar role="user" />
-      <div className="flex-1 flex flex-col ml-56">
-        <header className="px-8 py-4 border-b" style={{ background: "rgba(255,255,255,0.92)", borderColor: "rgba(124,58,237,0.08)" }}>
-          <h1 className="text-lg font-semibold" style={{ color: "#1E3A8A" }}>Leaderboard</h1>
-        </header>
-
-        <main className="flex-1 px-6 py-10">
-          <div className="max-w-[700px] mx-auto space-y-8">
+    <PageLayout title="Leaderboard" role="user">
+      <div className="px-6 py-10">
+        <div className="max-w-[700px] mx-auto space-y-8">
             <section className="bg-white rounded-xl p-6 border border-purple-100">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,237,0.08)" }}>
@@ -126,8 +117,7 @@ export default function LeaderboardPage() {
               )}
             </section>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+    </PageLayout>
   );
 }

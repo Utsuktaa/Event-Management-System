@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const connectDB = require("./db/connectDB");
+const { ensureBadgesSeeded } = require("./utils/gamification");
 
 const authRoutes = require("./routes/auth.route");
 const adminRoutes = require("./routes/admin.route");
@@ -16,6 +17,7 @@ const userRoutes = require("./routes/user.route");
 const leaderboardRoutes = require("./routes/leaderboard.route");
 const statsRoutes = require("./routes/stats.route");
 const scanRoutes = require("./routes/scan");
+const notificationRoutes = require("./routes/notification.route");
 const path = require("path");
 const dns = require("dns");
 
@@ -37,7 +39,7 @@ app.use(
       "https://1d5d-2400-1a00-3b23-66e0-7dac-3bb4-6d97-b1c3.ngrok-free.app",
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 app.options("*", cors());
@@ -45,7 +47,7 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("API is running");
 });
-connectDB();
+connectDB().then(() => ensureBadgesSeeded());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -58,6 +60,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/scan", scanRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
