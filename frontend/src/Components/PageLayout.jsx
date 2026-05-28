@@ -19,10 +19,7 @@ export default function PageLayout({
   headerRight = null,
 }) {
   return (
-    <div
-      className="min-h-screen font-sans flex"
-      style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #faf5ff 50%, #f0f9ff 100%)" }}
-    >
+    <div className="min-h-screen font-sans flex bg-gray-50">
       <Sidebar role={role} />
 
       <div className="flex-1 flex flex-col ml-56">

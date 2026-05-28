@@ -1,28 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import { getTokenFromCookies } from "../Utils/auth";
-import { Search, X, ChevronDown, Trash2, Plus, Users, Shield } from "lucide-react";
+import { Search, X, ChevronDown, Trash2, Plus, Users, Shield, Pencil, Check } from "lucide-react";
 import { API_BASE } from "../config";
 
 const API = `${API_BASE}/api/admin`;
 
 const ROLE_OPTIONS = [
-  { value: "president", label: "President" },
-  { value: "vice_president", label: "Vice President" },
   { value: "club_admin", label: "Club Admin" },
-  { value: "member", label: "Member" },
+  { value: "member",     label: "Member"     },
 ];
 
 const POLICY_OPTIONS = [
-  { value: "OPEN", label: "Open" },
+  { value: "OPEN",              label: "Open"              },
   { value: "APPROVAL_REQUIRED", label: "Approval Required" },
-  { value: "CLOSED", label: "Closed" },
+  { value: "CLOSED",            label: "Closed"            },
 ];
 
 const ROLE_COLORS = {
-  president: "bg-purple-100 text-purple-700",
-  vice_president: "bg-blue-100 text-blue-700",
-  club_admin: "bg-indigo-100 text-indigo-700",
-  member: "bg-gray-100 text-gray-600",
+  club_admin: "bg-purple-100 text-purple-700",
+  member:     "bg-gray-100 text-gray-600",
 };
 
 const STATUS_COLORS = {
@@ -118,6 +114,9 @@ export default function AdminPanel() {
   const [joinPolicy, setJoinPolicy] = useState("APPROVAL_REQUIRED");
   const [toast, setToast] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  // rename state
+  const [editingClubId, setEditingClubId] = useState(null);
+  const [editingClubName, setEditingClubName] = useState("");
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -155,6 +154,39 @@ export default function AdminPanel() {
     finally { setSubmitting(false); }
   };
 
+  const renameClub = async (clubId) => {
+    if (!editingClubName.trim()) return;
+    try {
+      const res = await fetch(`${API}/clubs/${clubId}`, {
+        method: "PATCH", headers, body: JSON.stringify({ name: editingClubName.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setClubs((prev) => prev.map((c) => c._id === clubId ? { ...c, name: data.name } : c));
+        if (selectedClub?._id === clubId) setSelectedClub((prev) => ({ ...prev, name: data.name }));
+        showToast(`Club renamed to "${data.name}"`);
+      } else {
+        showToast(data.message || "Failed to rename club", "error");
+      }
+    } catch { showToast("Network error", "error"); }
+    finally { setEditingClubId(null); setEditingClubName(""); }
+  };
+
+  const deleteClub = async (clubId, clubName) => {
+    if (!window.confirm(`Delete "${clubName}"? This will also remove all its members.`)) return;
+    try {
+      const res = await fetch(`${API}/clubs/${clubId}`, { method: "DELETE", headers });
+      if (res.ok) {
+        setClubs((prev) => prev.filter((c) => c._id !== clubId));
+        if (selectedClub?._id === clubId) setSelectedClub(null);
+        showToast(`Club "${clubName}" deleted`);
+      } else {
+        const data = await res.json();
+        showToast(data.message || "Failed to delete club", "error");
+      }
+    } catch { showToast("Network error", "error"); }
+  };
+
   const assignMember = async (e) => {
     e.preventDefault();
     if (!selectedClub || !selectedUser) return;
@@ -189,6 +221,7 @@ export default function AdminPanel() {
   return (
     <div className="space-y-6">
 
+      {/* Create Club */}
       <div className="bg-white rounded-xl p-6 border border-purple-100">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,237,0.10)" }}>
@@ -216,6 +249,60 @@ export default function AdminPanel() {
             Create
           </button>
         </form>
+      </div>
+
+      {/* Manage Clubs — rename / delete */}
+      <div className="bg-white rounded-xl p-6 border border-purple-100">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(124,58,237,0.10)" }}>
+            <Pencil className="w-4 h-4 text-purple-600" />
+          </div>
+          <h2 className="font-semibold text-base text-blue-900">Manage Clubs</h2>
+        </div>
+        {clubs.length === 0 ? (
+          <p className="text-sm text-gray-400">No clubs yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {clubs.map((c) => (
+              <li key={c._id} className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-purple-100 bg-purple-50/40">
+                {editingClubId === c._id ? (
+                  <input
+                    autoFocus
+                    value={editingClubName}
+                    onChange={(e) => setEditingClubName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") renameClub(c._id); if (e.key === "Escape") { setEditingClubId(null); setEditingClubName(""); } }}
+                    className="flex-1 px-3 py-1.5 text-sm border border-purple-300 rounded-lg outline-none focus:border-purple-500 bg-white"
+                  />
+                ) : (
+                  <span className="text-sm font-medium text-gray-800 flex-1">{c.name}</span>
+                )}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {editingClubId === c._id ? (
+                    <>
+                      <button onClick={() => renameClub(c._id)}
+                        className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition" title="Save">
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => { setEditingClubId(null); setEditingClubName(""); }}
+                        className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition" title="Cancel">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <button onClick={() => { setEditingClubId(c._id); setEditingClubName(c.name); }}
+                      className="p-1.5 rounded-lg text-purple-400 hover:bg-purple-100 transition" title="Rename">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button onClick={() => deleteClub(c._id, c.name)}
+                    className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition" title="Delete club">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="bg-white rounded-xl p-6 border border-purple-100">

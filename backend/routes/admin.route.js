@@ -29,6 +29,31 @@ router.get("/users", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+router.patch("/clubs/:clubId", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name?.trim()) return res.status(400).json({ message: "Club name is required" });
+    const existing = await Club.findOne({ name: name.trim(), _id: { $ne: req.params.clubId } });
+    if (existing) return res.status(400).json({ message: "A club with that name already exists" });
+    const club = await Club.findByIdAndUpdate(req.params.clubId, { name: name.trim() }, { new: true });
+    if (!club) return res.status(404).json({ message: "Club not found" });
+    return res.json(club);
+  } catch {
+    return res.status(500).json({ message: "Failed to update club" });
+  }
+});
+
+router.delete("/clubs/:clubId", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const club = await Club.findByIdAndDelete(req.params.clubId);
+    if (!club) return res.status(404).json({ message: "Club not found" });
+    await ClubMember.deleteMany({ clubId: req.params.clubId });
+    return res.json({ message: "Club deleted" });
+  } catch {
+    return res.status(500).json({ message: "Failed to delete club" });
+  }
+});
+
 router.post("/clubs", verifyToken, isAdmin, async (req, res) => {
   try {
     const { name, joinPolicy } = req.body;

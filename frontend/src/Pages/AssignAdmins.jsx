@@ -7,10 +7,7 @@ export default function AssignAdmins() {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="min-h-screen font-sans flex"
-      style={{ background: "linear-gradient(135deg, #ede9fe 0%, #f5f3ff 40%, #e0e7ff 100%)" }}
-    >
+    <div className="min-h-screen font-sans flex bg-gray-50">
       <Sidebar role="admin" />
 
       <div className="flex-1 flex flex-col ml-56">

@@ -169,15 +169,13 @@ export default function ModerationDashboard() {
 
   return (
     <div
-      className="min-h-screen font-sans flex"
-      style={{ background: "linear-gradient(135deg,#ede9fe 0%,#f5f3ff 40%,#e0e7ff 100%)" }}
+      className="min-h-screen font-sans flex bg-gray-50"
     >
       <Sidebar role="admin" />
 
       <div className="flex-1 flex flex-col ml-56">
         <header
-          className="px-8 py-4 flex items-center gap-3 border-b"
-          style={{ background: "rgba(255,255,255,0.92)", borderColor: "rgba(124,58,237,0.10)" }}
+          className="px-8 py-4 flex items-center gap-3 border-b bg-white border-purple-100"
         >
           <button
             onClick={() => navigate("/admin-dashboard")}
